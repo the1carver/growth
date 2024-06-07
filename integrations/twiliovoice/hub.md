@@ -1,5 +1,7 @@
 The Twilio Voice integration allows you to talk to your bot on a phone call.
 
+[![image](https://i.imgur.com/Ye9dN2F.png)](https://youtu.be/5w_qRxuTLAM)
+
 ## Prerequisites
 
 - A [Twilio](https://www.twilio.com/) account.
