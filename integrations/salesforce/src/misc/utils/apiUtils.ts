@@ -9,7 +9,7 @@ export const makeRequest = async (
   return await axios({
     method: input.method,
     url: url,
-    data: input.requestBody,
+    data: input.requestBody ? JSON.parse(input.requestBody) : {},
     params: input.params ? JSON.parse(input.params) : {},
     headers: {
       Authorization: `Bearer ${accessToken}`,

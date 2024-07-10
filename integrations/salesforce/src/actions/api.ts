@@ -1,9 +1,10 @@
-import axios from "axios";
+import { isAxiosError } from "axios";
 import { Output } from ".botpress/implementation/actions/makeApiRequest/output";
 import { Action } from "src/misc/types";
 import { makeRequest } from "src/misc/utils/apiUtils";
 import { getSfCredentials } from "src/misc/utils/bpUtils";
 import { refreshSfToken } from "src/misc/utils/sfUtils";
+import { handleError } from "src/misc/utils/errorUtils";
 
 export const makeApiRequest: Action["makeApiRequest"] = async (
   props
@@ -15,34 +16,37 @@ export const makeApiRequest: Action["makeApiRequest"] = async (
   const url = `${sfCredentials.instanceUrl}/services/data/v54.0/${input.path}`;
 
   try {
-    const res = await makeRequest(url, input, "sfCredentials.accessToken");
+    const res = await makeRequest(url, input, sfCredentials.accessToken);
 
     return {
       success: true,
       body: res.data,
     };
   } catch (e) {
-    if (axios.isAxiosError(e) && e.response && e.response.status === 401) {
-      await refreshSfToken(client, ctx);
-      const newSfCredentials = await getSfCredentials(
-        client,
-        ctx.integrationId
-      );
+    const errorMsg = `'Make API request' error:`;
+    if (isAxiosError(e) && e.response?.status === 401) {
+      try {
+        await refreshSfToken(client, ctx);
 
-      logger.forBot().info("Refreshed token");
+        const newSfCredentials = await getSfCredentials(
+          client,
+          ctx.integrationId
+        );
 
-      const res = await makeRequest(url, input, newSfCredentials.accessToken);
+        logger.forBot().info("Refreshed token");
 
-      return {
-        success: true,
-        body: res.data,
-      };
+        const res = await makeRequest(url, input, newSfCredentials.accessToken);
+
+        return {
+          success: true,
+          body: res.data,
+        };
+      } catch (e) {
+        return handleError(errorMsg, e, logger);
+      }
     }
 
-    return {
-      status: 500,
-      message: `Error making a request to Salesforce: ${JSON.stringify(e)}`,
-    };
+    return handleError(errorMsg, e, logger);
   }
 };
 export default {
