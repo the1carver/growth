@@ -1,11 +1,11 @@
 import { z, ZodObject, ZodRawShape, ZodTypeAny } from "@botpress/sdk";
 
-export const getSearchOutputSchema = (result: ZodObject<ZodRawShape>) => {
+export const getSearchOutputSchema = (record: ZodObject<ZodRawShape>) => {
   return z
     .object({
       success: z.boolean(),
       error: z.string().optional(),
-      records: z.array(result).optional(),
+      records: z.array(record).optional(),
     })
     .superRefine((data, ctx) => {
       if (data.success && data.records === undefined) {

@@ -1,19 +1,4 @@
-import axios from "axios";
-import { Client, Context } from "../types";
-
-export const verifyPat = async (pat: string, ctx: Context): Promise<void> => {
-  try {
-    await axios.get(`https://api.botpress.cloud/v1/admin/bots`, {
-      headers: {
-        Authorization: `Bearer ${pat}`,
-        "x-bot-id": ctx.botId,
-        "x-integration-id": ctx.integrationId,
-      },
-    });
-  } catch (e) {
-    throw new Error(`Pat is invalid ${JSON.stringify(e)} `);
-  }
-};
+import { Client } from "../types";
 
 export const getSfCredentials = async (
   client: Client,

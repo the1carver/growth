@@ -4,9 +4,8 @@ The Salesforce Leads integration allows you search, create, update, and delete S
 
 ## Integration Setup
 
-1. Enable the integration in your settings.
-2. Save your configuration to preserve the changes.
-3. Open the Webhook URL in your browser and follow the on-screen instructions to complete the installation process.
+1. Toggle on the "Enable Integration" option and click "Save."
+2. Open the Webhook URL in your browser and follow the on-screen instructions to complete the installation process.
 
 ## How-To
 
