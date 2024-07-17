@@ -1,5 +1,7 @@
-import { z } from "@botpress/sdk";
-import { RecordResultSchema } from "src/misc/custom-schemas/common-schemas";
+import {
+  RecordResultSchema,
+  SearchOutputSchema,
+} from "src/misc/custom-schemas/common-schemas";
 import {
   CreateLeadInputSchema,
   UpdateLeadInputSchema,
@@ -43,7 +45,7 @@ const searchLeads = {
     ui: SearchLeadsUi,
   },
   output: {
-    schema: z.object({}).passthrough(),
+    schema: SearchOutputSchema,
   },
 };
 

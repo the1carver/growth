@@ -41,13 +41,13 @@ export const UpdateContactUi = {
 };
 
 export const SearchContactsUi = {
-  name: {
+  Id: {
+    title: "The ID of the contact",
+  },
+  Name: {
     title: "The name of the contact",
   },
-  email: {
+  Email: {
     title: "The email address of the contact",
-  },
-  phone: {
-    title: "The phone number of the contact",
   },
 };
