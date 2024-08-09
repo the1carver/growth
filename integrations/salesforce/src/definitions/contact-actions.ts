@@ -1,4 +1,3 @@
-import { z } from "@botpress/sdk";
 import {
   CreateContactInputSchema,
   SearchContactsInputSchema,
@@ -9,7 +8,10 @@ import {
   SearchContactsUi,
   UpdateContactUi,
 } from "src/misc/custom-uis/contact-uis";
-import { RecordResultSchema } from "src/misc/custom-schemas/common-schemas";
+import {
+  RecordResultSchema,
+  SearchOutputSchema,
+} from "src/misc/custom-schemas/common-schemas";
 
 const createContact = {
   title: "Create Contact",
@@ -43,7 +45,7 @@ const searchContacts = {
     ui: SearchContactsUi,
   },
   output: {
-    schema: z.object({}).passthrough(),
+    schema: SearchOutputSchema,
   },
 };
 

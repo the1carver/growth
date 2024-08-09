@@ -24,7 +24,7 @@ export const searchContacts: Action["searchContacts"] = async (
   return await fetchSalesforceRecords(SalesforceObject.Contact, props);
 };
 
-export default {
+export const ContactActions = {
   createContact,
   updateContact,
   searchContacts,

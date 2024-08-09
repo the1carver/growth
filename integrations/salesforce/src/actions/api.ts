@@ -49,6 +49,6 @@ export const makeApiRequest: Action["makeApiRequest"] = async (
     return handleError(errorMsg, e, logger);
   }
 };
-export default {
+export const ApiActions = {
   makeApiRequest,
 };

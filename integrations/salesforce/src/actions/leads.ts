@@ -24,7 +24,7 @@ export const searchLeads: Action["searchLeads"] = async (
   return await fetchSalesforceRecords(SalesforceObject.Lead, props);
 };
 
-export default {
+export const LeadActions = {
   createLead,
   updateLead,
   searchLeads,

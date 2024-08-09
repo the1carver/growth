@@ -50,16 +50,16 @@ export const UpdateLeadUi = {
 };
 
 export const SearchLeadsUi = {
-  id: {
+  Id: {
     title: "The ID of the lead (e.g., leadId1)",
   },
-  name: {
+  Name: {
     title: "The name of the lead (e.g., John Doe)",
   },
-  email: {
+  Email: {
     title: "The email address of the lead (e.g., john.doe@example.com)",
   },
-  phone: {
+  Phone: {
     title: "The phone number of the lead (e.g., +1-555-1234)",
   },
 };
