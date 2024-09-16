@@ -15,10 +15,7 @@ This project provides a Human-In-The-Loop (HITL) integration for Botpress. It al
 ## Prerequisites
 
 - Node.js and npm installed.
-- Botpress CLI installed. You can install it globally using:
-  \`\`\`bash
-  npm install -g @botpress/cli
-  \`\`\`
+- A Botpress workspace and a bot ready to have the integration installed to.
 
 ## Installation
 
