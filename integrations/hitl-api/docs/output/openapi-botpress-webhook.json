@@ -244,7 +244,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AgentAssignedPayload"
+                "$ref": "#/components/schemas/AgentMessagePayload"
               }
             }
           }

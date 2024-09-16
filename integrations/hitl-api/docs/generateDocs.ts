@@ -105,17 +105,17 @@ const swaggerSpecExternalService = swaggerJSDoc(swaggerOptionsExternalService);
 
 // Write the Swagger specs to separate files
 fs.writeFileSync(
-  "./openapi-botpress-webhook.json",
+  "./docs/output/openapi-botpress-webhook.json",
   JSON.stringify(swaggerSpecBotpressWebhook, null, 2)
 );
 fs.writeFileSync(
-  "./openapi-external-service.json",
+  "./docs/output/openapi-external-service.json",
   JSON.stringify(swaggerSpecExternalService, null, 2)
 );
 
 console.log(
-  "OpenAPI JSON generated for Botpress Webhook at ./openapi-botpress-webhook.json"
+  "OpenAPI JSON generated for Botpress Webhook at ./docs/output/openapi-botpress-webhook.json"
 );
 console.log(
-  "OpenAPI JSON generated for External Service at ./openapi-external-service.json"
+  "OpenAPI JSON generated for External Service at ./docs/output/openapi-external-service.json"
 );
