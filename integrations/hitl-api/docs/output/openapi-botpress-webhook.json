@@ -216,35 +216,20 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the conversation / ticket on the live agent platform"
           }
         },
         "required": [
           "id"
         ]
       },
-      "CloseRemoteTicketResponse": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
       "CreateRemoteUserResponse": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the chat-user on the live agent platform"
           }
         },
         "required": [

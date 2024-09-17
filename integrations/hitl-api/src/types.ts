@@ -107,20 +107,12 @@ export const HandlerInput = z
 
 export const CreateRemoteConversationResponse = z
   .object({
-    id: z.string(),
-    title: z.string().optional(),
-    description: z.string().optional(),
+    id: z.string().describe("The ID of the conversation / ticket on the live agent platform"),
   })
   .openapi("CreateRemoteConversationResponse");
 
-export const CloseRemoteTicketResponse = z
-  .object({
-    status: z.string(), // Assuming status, adjust as needed
-  })
-  .openapi("CloseRemoteTicketResponse");
-
 export const CreateRemoteUserResponse = z
   .object({
-    id: z.string(),
+    id: z.string().describe("The ID of the chat-user on the live agent platform"),
   })
   .openapi("CreateRemoteUserResponse");

@@ -13,7 +13,6 @@ import {
   AgentAssignedPayload,
   StopHitlPayload,
   CreateRemoteConversationResponse,
-  CloseRemoteTicketResponse,
   CreateRemoteUserResponse,
   AgentMessagePayload,
   
@@ -40,7 +39,6 @@ registry.register(
   "CreateRemoteConversationResponse",
   CreateRemoteConversationResponse
 );
-registry.register("CloseRemoteTicketResponse", CloseRemoteTicketResponse);
 registry.register("CreateRemoteUserResponse", CreateRemoteUserResponse);
 
 // Generate the OpenAPI components from Zod schemas
