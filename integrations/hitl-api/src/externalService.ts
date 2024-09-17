@@ -99,7 +99,7 @@ export const closeRemoteTicket = async (
     `${endpointBaseUrl}/closeRemoteTicket`,
     closeRemoteTicketPayload
   );
-  return response.data
+  return response.data;
 };
 
 /**
@@ -128,7 +128,7 @@ export const createRemoteUser = async (endpointBaseUrl: string, input: any) => {
   const payload = {
     type: "createRemoteUser",
     payload: { role: "end-user", ...input },
-  }
+  };
   const createRemoteUserPayload = CreateRemoteUserPayload.parse(payload);
   const response = await axios.post(
     `${endpointBaseUrl}/createRemoteUser`,
@@ -163,11 +163,9 @@ export const botSendsMessage = async (
 ) => {
   const botSendsMessagePayload = BotSendsMessagePayload.parse({
     type: "botSendsMessage",
-    payload: {
-      remoteConversationId: conversationId,
-      remoteUserId: userId,
-      payload,
-    },
+    remoteConversationId: conversationId,
+    remoteUserId: userId,
+    payload,
   });
   const response = await axios.post(
     `${endpointBaseUrl}/botSendsMessage`,
