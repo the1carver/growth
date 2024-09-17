@@ -22,7 +22,7 @@ const sendRawPayload = async ({
   ctx: any;
   user: any;
 }) => {
-  const externalUserId = payload.userId ? (await client.getUser({ id: payload.userId })).tags.externalId : "BOT"; 
+  const externalUserId = payload.userId ? (await client.getUser({ id: payload.userId })).user.tags.externalId : "BOT"; 
 
   await botSendsMessage(
     ctx.configuration.endpointBaseUrl,
