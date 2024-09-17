@@ -189,6 +189,30 @@
           "remoteConversationId"
         ]
       },
+      "AgentMessagePayload": {
+        "type": "object",
+        "properties": {
+          "remoteConversationId": {
+            "type": "string"
+          },
+          "remoteUserId": {
+            "type": "string"
+          },
+          "messageType": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        "required": [
+          "remoteConversationId",
+          "remoteUserId",
+          "messageType",
+          "payload"
+        ]
+      },
       "CreateRemoteConversationResponse": {
         "type": "object",
         "properties": {

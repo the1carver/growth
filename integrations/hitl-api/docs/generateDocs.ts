@@ -15,6 +15,7 @@ import {
   CreateRemoteConversationResponse,
   CloseRemoteTicketResponse,
   CreateRemoteUserResponse,
+  AgentMessagePayload,
   
 } from "../src/types";
 
@@ -32,6 +33,7 @@ registry.register("CreateRemoteUserPayload", CreateRemoteUserPayload);
 registry.register("BotSendsMessagePayload", BotSendsMessagePayload);
 registry.register("AgentAssignedPayload", AgentAssignedPayload);
 registry.register("StopHitlPayload", StopHitlPayload);
+registry.register("AgentMessagePayload", AgentMessagePayload);
 
 // Register response schemas using the registry
 registry.register(
