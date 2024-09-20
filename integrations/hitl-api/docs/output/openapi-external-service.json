@@ -116,7 +116,10 @@
           },
           "payload": {
             "type": "object",
-            "properties": {}
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "whatever user payload sent from Botpress"
           }
         },
         "required": [
@@ -133,29 +136,26 @@
               "botSendsMessage"
             ]
           },
+          "remoteConversationId": {
+            "type": "string",
+            "description": "The ID of the conversation on the live agent platform"
+          },
+          "remoteUserId": {
+            "type": "string",
+            "description": "The ID of the chat-user on the live agent platform"
+          },
           "payload": {
             "type": "object",
-            "properties": {
-              "remoteConversationId": {
-                "type": "string"
-              },
-              "remoteUserId": {
-                "type": "string"
-              },
-              "payload": {
-                "type": "object",
-                "properties": {}
-              }
+            "additionalProperties": {
+              "nullable": true
             },
-            "required": [
-              "remoteConversationId",
-              "remoteUserId",
-              "payload"
-            ]
+            "description": "The message payload in the botpress format"
           }
         },
         "required": [
           "type",
+          "remoteConversationId",
+          "remoteUserId",
           "payload"
         ]
       },
@@ -163,65 +163,78 @@
         "type": "object",
         "properties": {
           "remoteConversationId": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the conversation on the live agent platform"
           },
           "remoteUserId": {
-            "type": "string"
-          },
-          "agentDisplayName": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the chat-user on the live agent platform"
           }
         },
         "required": [
           "remoteConversationId",
-          "remoteUserId",
-          "agentDisplayName"
+          "remoteUserId"
         ]
       },
       "StopHitlPayload": {
         "type": "object",
         "properties": {
           "remoteConversationId": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the conversation on the live agent platform"
           }
         },
         "required": [
           "remoteConversationId"
         ]
       },
+      "AgentMessagePayload": {
+        "type": "object",
+        "properties": {
+          "remoteConversationId": {
+            "type": "string",
+            "description": "The ID of the conversation on the live agent platform"
+          },
+          "remoteUserId": {
+            "type": "string",
+            "description": "The ID of the chat-user on the live agent platform"
+          },
+          "messageType": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "The message payload in the botpress format"
+          }
+        },
+        "required": [
+          "remoteConversationId",
+          "remoteUserId",
+          "messageType",
+          "payload"
+        ]
+      },
       "CreateRemoteConversationResponse": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the conversation / ticket on the live agent platform"
           }
         },
         "required": [
           "id"
         ]
       },
-      "CloseRemoteTicketResponse": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
       "CreateRemoteUserResponse": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the chat-user on the live agent platform"
           }
         },
         "required": [
@@ -238,7 +251,7 @@
         "tags": [
           "Endpoints to implement"
         ],
-        "description": "An authenticated endpoint that allows your service to say it's ready to receive requests.",
+        "description": "An authenticated endpoint that allows your service to say it's ready to receive requests. Your service must return a 200 response.",
         "operationId": "pingExternalService",
         "responses": {
           "200": {
@@ -253,7 +266,7 @@
         "tags": [
           "Endpoints to implement"
         ],
-        "description": "Creates a remote conversation on your service. This is required for the HITL process to work.",
+        "description": "Creates a remote conversation on your service. This is required for the HITL process to work. Your service must return payload with an id for the conversation in the live agent system.",
         "operationId": "createRemoteConversation",
         "requestBody": {
           "content": {
@@ -284,7 +297,7 @@
         "tags": [
           "Endpoints to implement"
         ],
-        "description": "Closes a ticket on your service. Once closed, no further actions are expected for this conversation.",
+        "description": "Closes a ticket on your service. Once closed, no further actions are expected for this conversation. Your service must return a 200 response.",
         "operationId": "closeRemoteTicket",
         "requestBody": {
           "content": {
@@ -297,14 +310,7 @@
         },
         "responses": {
           "200": {
-            "description": "Ticket closed successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CloseRemoteTicketResponse"
-                }
-              }
-            }
+            "description": "Ticket closed successfully."
           }
         }
       }
@@ -315,7 +321,7 @@
         "tags": [
           "Endpoints to implement"
         ],
-        "description": "Creates a user on your service. This is necessary to associate users with conversations in the HITL process.",
+        "description": "Creates a user on your service. This is necessary to associate users with conversations in the HITL process. Your service must return payload with an id for the conversation in the live agent system.",
         "operationId": "createRemoteUser",
         "requestBody": {
           "content": {
@@ -346,7 +352,7 @@
         "tags": [
           "Endpoints to implement"
         ],
-        "description": "Sends a message from the bot to the agent conversation on your service as part of the HITL process.",
+        "description": "Sends a message from the bot to the agent conversation on your service as part of the HITL process. Your service must return a 200 response.",
         "operationId": "botSendsMessage",
         "requestBody": {
           "content": {

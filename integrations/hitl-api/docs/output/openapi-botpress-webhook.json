@@ -115,7 +115,10 @@
           },
           "payload": {
             "type": "object",
-            "properties": {}
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "whatever user payload sent from Botpress"
           }
         },
         "required": [
@@ -132,29 +135,26 @@
               "botSendsMessage"
             ]
           },
+          "remoteConversationId": {
+            "type": "string",
+            "description": "The ID of the conversation on the live agent platform"
+          },
+          "remoteUserId": {
+            "type": "string",
+            "description": "The ID of the chat-user on the live agent platform"
+          },
           "payload": {
             "type": "object",
-            "properties": {
-              "remoteConversationId": {
-                "type": "string"
-              },
-              "remoteUserId": {
-                "type": "string"
-              },
-              "payload": {
-                "type": "object",
-                "properties": {}
-              }
+            "additionalProperties": {
+              "nullable": true
             },
-            "required": [
-              "remoteConversationId",
-              "remoteUserId",
-              "payload"
-            ]
+            "description": "The message payload in the botpress format"
           }
         },
         "required": [
           "type",
+          "remoteConversationId",
+          "remoteUserId",
           "payload"
         ]
       },
@@ -162,65 +162,78 @@
         "type": "object",
         "properties": {
           "remoteConversationId": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the conversation on the live agent platform"
           },
           "remoteUserId": {
-            "type": "string"
-          },
-          "agentDisplayName": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the chat-user on the live agent platform"
           }
         },
         "required": [
           "remoteConversationId",
-          "remoteUserId",
-          "agentDisplayName"
+          "remoteUserId"
         ]
       },
       "StopHitlPayload": {
         "type": "object",
         "properties": {
           "remoteConversationId": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the conversation on the live agent platform"
           }
         },
         "required": [
           "remoteConversationId"
         ]
       },
+      "AgentMessagePayload": {
+        "type": "object",
+        "properties": {
+          "remoteConversationId": {
+            "type": "string",
+            "description": "The ID of the conversation on the live agent platform"
+          },
+          "remoteUserId": {
+            "type": "string",
+            "description": "The ID of the chat-user on the live agent platform"
+          },
+          "messageType": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "The message payload in the botpress format"
+          }
+        },
+        "required": [
+          "remoteConversationId",
+          "remoteUserId",
+          "messageType",
+          "payload"
+        ]
+      },
       "CreateRemoteConversationResponse": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the conversation / ticket on the live agent platform"
           }
         },
         "required": [
           "id"
         ]
       },
-      "CloseRemoteTicketResponse": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
       "CreateRemoteUserResponse": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the chat-user on the live agent platform"
           }
         },
         "required": [

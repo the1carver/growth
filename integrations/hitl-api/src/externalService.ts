@@ -6,7 +6,6 @@ import {
   CreateRemoteUserPayload,
   BotSendsMessagePayload,
   CreateRemoteConversationResponse,
-  CloseRemoteTicketResponse,
   CreateRemoteUserResponse,
 } from "./types";
 
@@ -17,7 +16,7 @@ import {
  *     summary: Ping your service
  *     tags:
  *      - Endpoints to implement
- *     description: An authenticated endpoint that allows your service to say it's ready to receive requests.
+ *     description: An authenticated endpoint that allows your service to say it's ready to receive requests. Your service must return a 200 response.
  *     operationId: pingExternalService
  *     responses:
  *       200:
@@ -38,7 +37,7 @@ export const pingExternalService = async (endpointBaseUrl: string) => {
  *     summary: Create a conversation in your service
  *     tags:
  *      - Endpoints to implement
- *     description: Creates a remote conversation on your service. This is required for the HITL process to work.
+ *     description: Creates a remote conversation on your service. This is required for the HITL process to work. Your service must return payload with an id for the conversation in the live agent system.
  *     operationId: createRemoteConversation
  *     requestBody:
  *       content:
@@ -77,7 +76,7 @@ export const createRemoteConversation = async (
  *     summary: Close a ticket
  *     tags:
  *      - Endpoints to implement
- *     description: Closes a ticket on your service. Once closed, no further actions are expected for this conversation.
+ *     description: Closes a ticket on your service. Once closed, no further actions are expected for this conversation. Your service must return a 200 response.
  *     operationId: closeRemoteTicket
  *     requestBody:
  *       content:
@@ -87,10 +86,6 @@ export const createRemoteConversation = async (
  *     responses:
  *       200:
  *         description: Ticket closed successfully.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/CloseRemoteTicketResponse'
  */
 export const closeRemoteTicket = async (
   endpointBaseUrl: string,
@@ -104,7 +99,7 @@ export const closeRemoteTicket = async (
     `${endpointBaseUrl}/closeRemoteTicket`,
     closeRemoteTicketPayload
   );
-  return CloseRemoteTicketResponse.parse(response.data);
+  return response.data;
 };
 
 /**
@@ -114,7 +109,7 @@ export const closeRemoteTicket = async (
  *     summary: Create a user
  *     tags:
  *      - Endpoints to implement
- *     description: Creates a user on your service. This is necessary to associate users with conversations in the HITL process.
+ *     description: Creates a user on your service. This is necessary to associate users with conversations in the HITL process. Your service must return payload with an id for the conversation in the live agent system.
  *     operationId: createRemoteUser
  *     requestBody:
  *       content:
@@ -133,7 +128,7 @@ export const createRemoteUser = async (endpointBaseUrl: string, input: any) => {
   const payload = {
     type: "createRemoteUser",
     payload: { role: "end-user", ...input },
-  }
+  };
   const createRemoteUserPayload = CreateRemoteUserPayload.parse(payload);
   const response = await axios.post(
     `${endpointBaseUrl}/createRemoteUser`,
@@ -149,7 +144,7 @@ export const createRemoteUser = async (endpointBaseUrl: string, input: any) => {
  *     summary: Send a message to the agent
  *     tags:
  *      - Endpoints to implement
- *     description: Sends a message from the bot to the agent conversation on your service as part of the HITL process.
+ *     description: Sends a message from the bot to the agent conversation on your service as part of the HITL process. Your service must return a 200 response.
  *     operationId: botSendsMessage
  *     requestBody:
  *       content:
@@ -168,11 +163,9 @@ export const botSendsMessage = async (
 ) => {
   const botSendsMessagePayload = BotSendsMessagePayload.parse({
     type: "botSendsMessage",
-    payload: {
-      remoteConversationId: conversationId,
-      remoteUserId: userId,
-      payload,
-    },
+    remoteConversationId: conversationId,
+    remoteUserId: userId,
+    payload,
   });
   const response = await axios.post(
     `${endpointBaseUrl}/botSendsMessage`,
