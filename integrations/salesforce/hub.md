@@ -6,6 +6,7 @@ The Salesforce Leads integration allows you search, create, update, and delete S
 
 1. Toggle on the "Enable Integration" option and click "Save."
 2. Open the Webhook URL in your browser and follow the on-screen instructions to complete the installation process.
+3. Toggle on the "Sandbox Environment" option if you wish to switch to Salesforce's Sandbox environment. Whenever you change the environment (from Production to Sandbox or vice versa), you must reauthorize the connection by repeating the installation process described in Step 2.
 
 ## How-To
 
