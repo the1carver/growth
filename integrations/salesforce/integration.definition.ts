@@ -5,7 +5,7 @@ import { actionDefinitions } from "./src/definitions";
 export default new IntegrationDefinition({
   name: integrationName,
   title: "Salesforce",
-  version: "0.4.5",
+  version: "0.5.0",
   readme: "hub.md",
   icon: "icon.svg",
   description:
@@ -13,10 +13,16 @@ export default new IntegrationDefinition({
   identifier: {
     fallbackHandlerScript: "fallbackHandler.vrl",
   },
+  configuration: {
+    schema: z.object({
+      sandboxEnvironment: z.boolean(),
+    }),
+  },
   states: {
     credentials: {
       type: "integration",
       schema: z.object({
+        isSandbox: z.boolean(),
         accessToken: z.string(),
         instanceUrl: z.string(),
         refreshToken: z.string(),

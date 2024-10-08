@@ -14,7 +14,8 @@ export const rootHandler = async (props: HandlerProps) => {
     (req.path === "/" || req.path === "") && req.method === "GET";
 
   if (needsToLoginSalesforce) {
-    const oAUth2 = getOAuth2();
+    const oAUth2 = getOAuth2(ctx);
+
     const authorizationUrl = `${oAUth2.getAuthorizationUrl({})}&state=${
       ctx.webhookId
     }`;
@@ -32,7 +33,7 @@ export const rootHandler = async (props: HandlerProps) => {
 
   const { code } = querystring.parse(req.query);
 
-  const salesforceConnection = new Connection({ oauth2: getOAuth2() });
+  const salesforceConnection = new Connection({ oauth2: getOAuth2(ctx) });
 
   if (typeof code !== "string") {
     throw new bp.RuntimeError("Incorreact code provided");
@@ -51,6 +52,7 @@ export const rootHandler = async (props: HandlerProps) => {
     name: "credentials",
     id: ctx.integrationId,
     payload: {
+      isSandbox: ctx.configuration.sandboxEnvironment,
       accessToken,
       instanceUrl,
       refreshToken,
