@@ -4,13 +4,23 @@ import { OAuth2, Connection } from "jsforce";
 import * as bp from ".botpress";
 import { getSfCredentials } from "./bpUtils";
 
-export const getOAuth2 = (): OAuth2 =>
-  new OAuth2({
+export const getOAuth2 = (ctx: Context): OAuth2 => {
+  console.log(
+    "ctx.configuration.sandboxEnvironment",
+    ctx.configuration.sandboxEnvironment
+  );
+  const loginUrl = ctx.configuration.sandboxEnvironment
+    ? "https://test.salesforce.com"
+    : "https://login.salesforce.com";
+  console.log("loginUrl", loginUrl);
+  return new OAuth2({
     clientId: bp.secrets.CONSUMER_KEY,
     clientSecret: bp.secrets.CONSUMER_SECRET,
     redirectUri:
       "https://webhook.botpress.cloud/integration/intver_01J0PAK7GPBNW7H959MZQRX6N9/oath",
+    loginUrl: loginUrl,
   });
+};
 
 export const getConnection = async (
   client: Client,
@@ -29,10 +39,10 @@ export const getConnection = async (
     throw new Error(errorMsg);
   }
 
-  const { accessToken, instanceUrl, refreshToken } = sfCredentials;
+  const { accessToken, instanceUrl, refreshToken, isSandbox } = sfCredentials;
 
   const connection = new Connection({
-    oauth2: getOAuth2(),
+    oauth2: getOAuth2(ctx),
     instanceUrl,
     accessToken,
     refreshToken,
@@ -45,6 +55,7 @@ export const getConnection = async (
       name: "credentials",
       id: ctx.integrationId,
       payload: {
+        isSandbox,
         accessToken: newAccessToken,
         instanceUrl,
         refreshToken,
@@ -80,6 +91,7 @@ export const refreshSfToken = async (
       name: "credentials",
       id: ctx.integrationId,
       payload: {
+        isSandbox: sfCredentials.isSandbox,
         accessToken: response.data.access_token,
         instanceUrl: sfCredentials.instanceUrl,
         refreshToken: sfCredentials.refreshToken,

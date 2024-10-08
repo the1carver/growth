@@ -80,7 +80,7 @@ export default new bp.Integration({
 
       const hf = new HfInference(ctx.configuration.accessToken);
 
-      const { state } = await client.getState({
+      const { state } = await te({
         type: "integration",
         name: "availableModels",
         id: ctx.integrationId,
@@ -96,7 +96,7 @@ export default new bp.Integration({
     },
 
     listLanguageModels: async ({ ctx, client }) => {
-      const { state } = await client.getState({
+      const { state } = await te({
         type: "integration",
         name: "availableModels",
         id: ctx.integrationId,
