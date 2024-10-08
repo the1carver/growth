@@ -5,10 +5,6 @@ import * as bp from ".botpress";
 import { getSfCredentials } from "./bpUtils";
 
 export const getOAuth2 = (ctx: Context): OAuth2 => {
-  console.log(
-    "ctx.configuration.sandboxEnvironment",
-    ctx.configuration.sandboxEnvironment
-  );
   const loginUrl = ctx.configuration.sandboxEnvironment
     ? "https://test.salesforce.com"
     : "https://login.salesforce.com";

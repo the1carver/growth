@@ -1,5 +1,5 @@
 import * as bp from "@botpress/sdk";
-import { Connection, OAuth2 } from "jsforce";
+import { Connection } from "jsforce";
 import querystring from "querystring";
 import { getSuccessLoginPage } from "src/misc/get-success-login-page";
 import { HandlerProps } from "src/misc/types";
