@@ -12,7 +12,7 @@ export const getOAuth2 = (ctx: Context): OAuth2 => {
   const loginUrl = ctx.configuration.sandboxEnvironment
     ? "https://test.salesforce.com"
     : "https://login.salesforce.com";
-  console.log("loginUrl", loginUrl);
+
   return new OAuth2({
     clientId: bp.secrets.CONSUMER_KEY,
     clientSecret: bp.secrets.CONSUMER_SECRET,
