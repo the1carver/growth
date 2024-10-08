@@ -5,7 +5,7 @@ import { getSfCredentials } from "./misc/utils/bpUtils";
 
 export default new bp.Integration({
   register: async (props) => {
-    const { client, ctx } = props;
+    const { client, ctx, logger } = props;
 
     const credentials = await getSfCredentials(client, ctx.integrationId);
 
@@ -16,6 +16,10 @@ export default new bp.Integration({
         id: ctx.integrationId,
         payload: null,
       });
+
+      logger
+        .forBot()
+        .info("Salesforce environment has changed, please login again");
     }
   },
   unregister: async () => {},

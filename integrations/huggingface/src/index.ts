@@ -2,7 +2,6 @@ import * as sdk from "@botpress/sdk";
 import { interfaces } from "@botpress/sdk";
 import { HfInference } from "@huggingface/inference";
 import * as bp from ".botpress";
-import axios from "axios";
 import { generateContent } from "./actions/generateContent";
 import { fetchModel } from "./misc/client";
 
@@ -80,7 +79,7 @@ export default new bp.Integration({
 
       const hf = new HfInference(ctx.configuration.accessToken);
 
-      const { state } = await te({
+      const { state } = await client.getState({
         type: "integration",
         name: "availableModels",
         id: ctx.integrationId,
@@ -96,7 +95,7 @@ export default new bp.Integration({
     },
 
     listLanguageModels: async ({ ctx, client }) => {
-      const { state } = await te({
+      const { state } = await client.getState({
         type: "integration",
         name: "availableModels",
         id: ctx.integrationId,
