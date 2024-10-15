@@ -7,10 +7,11 @@
   "private": true,
   "dependencies": {
     "@botpress/client": "0.33.0",
-    "@botpress/sdk": "0.11.8"
+    "@botpress/sdk": "0.11.8",
+    "axios": "^1.7.7"
   },
   "devDependencies": {
-    "@botpress/cli": "^0.11.5",
+    "@botpress/cli": "^0.11.6",
     "@types/node": "^18.11.17",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.1",

@@ -1,4 +1,3 @@
-
 import { IntegrationDefinition, z } from "@botpress/sdk";
 import { integrationName } from "./package.json";
 
