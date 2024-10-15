@@ -1,6 +1,6 @@
 {
   "name": "twiliovoice",
-  "integrationName": "plus/twiliovoice",
+  "integrationName": "twiliovoice",
   "scripts": {
     "type:check": "tsc --noEmit",
     "dev": "nodemon --watch \"./src/*\" --ext \"ts\" --exec \"bp deploy -y\""
@@ -8,7 +8,7 @@
   "private": true,
   "dependencies": {
     "@botpress/client": "^0.20.1",
-    "@botpress/sdk": "^0.8.22",
+    "@botpress/sdk": "^0.10.13",
     "query-string": "^9.0.0",
     "twilio": "^5.1.0"
   },
