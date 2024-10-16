@@ -29,6 +29,7 @@ export class BotpressKB implements IBotpressKB {
     await this.bpClient.uploadFile({
       key: `${filename}.txt`,
       content,
+      index: true,
       tags: {
         source: "knowledge-base",
         kbId: this.kbId,
