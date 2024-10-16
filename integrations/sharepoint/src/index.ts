@@ -13,6 +13,8 @@ export default new bp.Integration({
 
       await spClient.initializeItems();
 
+      logger.forBot().info(`Registering webhook (${webhookUrl}) for list: ${listId}`);
+
       const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl, listId);
 
       const changeToken = await spClient.getLatestChangeToken();
@@ -131,7 +133,7 @@ export default new bp.Integration({
 
     // Check if the resource matches the listId, if not, log and return
     if (resource !== listId) {
-      logger.forBot().error(`Webhook called for a different list: ${resource}`);
+      logger.forBot().error(`Webhook called for a different list: ${resource}, expected: ${listId} got ${resource}`);
       return { status: 200, body: "OK" };
     }
 
