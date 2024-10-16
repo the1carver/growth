@@ -97,16 +97,7 @@ export interface ISharepointClient {
 // }
 
 export class SharepointClient implements ISharepointClient {
-  private msalConfig: {
-    auth: {
-      clientId: string;
-      authority: string;
-      clientCertificate: {
-        thumbprint: string;
-        privateKey: string;
-      };
-    };
-  };
+  private cca: msal.ConfidentialClientApplication;
   private primaryDomain: string;
   private siteName: string;
   private listName: string;
@@ -120,7 +111,7 @@ export class SharepointClient implements ISharepointClient {
     primaryDomain: string,
     botpressKB: IBotpressKB
   ) {
-    this.msalConfig = {
+    this.cca = new msal.ConfidentialClientApplication({
       auth: {
         clientId,
         authority: `https://login.microsoftonline.com/${tenantId}`,
@@ -129,7 +120,7 @@ export class SharepointClient implements ISharepointClient {
           privateKey: privatekeyplaceholder,
         },
       },
-    };
+    });
     this.botpressKB = botpressKB;
     this.primaryDomain = primaryDomain;
     this.siteName = "DemoStandardTeamPage"; // TODO (AJ): Make this configurable
@@ -142,11 +133,10 @@ export class SharepointClient implements ISharepointClient {
    */
   private async acquireToken(): Promise<msal.AuthenticationResult> {
     try {
-      const cca = new msal.ConfidentialClientApplication(this.msalConfig);
       const tokenRequest = {
         scopes: [`https://${this.primaryDomain}.sharepoint.com/.default`],
       };
-      const token = await cca.acquireTokenByClientCredential(tokenRequest);
+      const token = await this.cca.acquireTokenByClientCredential(tokenRequest);
 
       if (token === null) {
         throw new sdk.RuntimeError(`Error acquiring sp OAuth token`);

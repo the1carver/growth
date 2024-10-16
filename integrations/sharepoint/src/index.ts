@@ -2,7 +2,6 @@ import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
 import { BotpressKB } from "./BotpressKB";
 import { getClient } from "./SharepointClient";
-import { log } from "console";
 
 export default new bp.Integration({
   register: async ({ ctx, webhookUrl, client, logger }) => {
@@ -50,7 +49,7 @@ export default new bp.Integration({
 
       if (state.payload.webhookSubscriptionId.length) {
         // @ts-expect-error - TODO: Fix this
-        const spClient = getClient(ctx.configuration, new BotpressKB(client));
+        const spClient = getClient(ctx.configuration, new BotpressKB(client, logger));
 
         spClient.unregisterWebhook(state.payload.webhookSubscriptionId, state.payload.listId);
 
@@ -112,7 +111,7 @@ export default new bp.Integration({
     const tenantId = body.value[0].tenantId;
     const resource = body.value[0].resource;
     // @ts-expect-error - TODO: Fix this
-    const spClient = getClient(ctx.configuration, new BotpressKB(client));
+    const spClient = getClient(ctx.configuration, new BotpressKB(client, logger));
 
     // Check if the tenantId matches the configuration, if not, log and return
     if (ctx.configuration.tenantId !== tenantId) {
