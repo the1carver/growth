@@ -1,7 +1,8 @@
 import axios from "axios";
 import * as msal from "@azure/msal-node";
 import * as sdk from "@botpress/sdk";
-import { handleAxiosError, stringToArrayBuffer } from "./utils";
+import * as bp from ".botpress";
+import { handleAxiosError } from "./utils";
 import { IBotpressKB } from "./BotpressKB";
 import {
   ChangeItem,
@@ -10,36 +11,6 @@ import {
   SharePointItemResponse,
   SharePointItemsResponse,
 } from "./SharepointTypes";
-
-export const privatekeyplaceholder = `-----BEGIN PRIVATE KEY-----
-MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCOlhz3SR9TYhvO
-OReRvk+QWZHX16YktISLoUIslDiI5zequLGB8qCgI1mTloR2zvFv/8DeVWqt3M8S
-2P5ibprg6PvoKY7kFAEDmcHS5HGl4dRfDBcJCy1K6dS5w8iIDIOE0qjofPUW1rb+
-7n6M4y8ENX+K6UEl9kLC98L6oQd6jOncix/3iyTWFp0oaD6PId5Z48DwJxxsHzf6
-/PjkuB8+EzxknbFB/oGo1Ln1OvFyJlXRBCLNErLxxUfg4yqLoQ/3+oIeVY0/yGlr
-ULzf4pBOBJO8NcoaWqfk63fOPFhn8ql6FQRbtwbXw4akOjfo8t3mcyUPILaFBA8s
-6YzK+CxBAgMBAAECggEAFYOX5kX9uIaenGyn3kFBXw3swA0VUAd+0lSoF/LbXujI
-UPWiLvHNg6whyW+WGBkce+Iylzl7KbWd9wGPzIlUzCfLTpnqqgZMqt7pzGjUrwtW
-kGrSFPa/RETo6IieesyskX95pe6oymPmY6vXo2lqADAUSQDt6AzywNlCba+bYcWk
-nKwVvAe0aYC9dW4bmOTevVPQkMe/TbW1qzvbJfEYfLCz6IX6O3WG84dWmB1tvMVG
-oxOnvvKD1EWH+Ed4IdyPa3Z9ILqAOGTRqok+NdXallcHT3ky9eS0csXK34CqBtkz
-L9I4I9Rc/EN/zImepPb37JOd9oSMJ6OsVkVV0r/+mQKBgQDEO5QV4D8D1RiT1aJf
-vT5bKiWtYh3H0eaHEPVwdO9hsV7NBeyJ9HokITbsMxvAfBLUc76YoW52eIF5E5wA
-bTGiJ+80NazQNOmIYydGoVBai66g3Ile+hjj37ZhkBGXqHQzhGltuvaAHHaUpypW
-u22tmqmEgieBxPLxnkha0t6fJQKBgQC6A6+xVCnGsuh/gCq+rdbwps2S0i4kWNos
-umgWd5IALfx7CjHDAwQGTzXiLDaFUHQB+FZOpljXXv3TFBJ1H2n/fNCCQ1SxNs16
-9Oc02P7NTmqQrZDV91KY8TO/9hQ98fvj8nMWX89uFRU0kr1KQfgpvrtwa5BaPsHo
-41vZmJNL7QKBgHH1165MqMvk+X0BWGcZVBlFhNQIYxskfyh5ZNCGWG73vwJ6KkCD
-xlstHuRVWgyTAax3+3xQZAJRQX+7L6HfyC9P2c8MTOwtjmIykyClljC/Zg7thKmv
-vLy5swU90bmtjq5Me53KMlV8MjFqU2BDQRLM+x2FKMRoSF6heYulYrwxAoGAECFP
-s+3bbYqIFL5VdpF2iQm929R0AdzelnBXpFMcCv3x3e2FYSa6y51Ey+cPl0HhvWX+
-ffV40LxBAHPGIffmZiw5nIIgLvnUmavw/KkwdzcskH0siRFYTUDlPukk2jZIpHya
-tD78qswTOarb1TuhPGV4tYfuTZURlZNZnKXZaAUCgYBHo6q8IaUhEMKvj/S2RVgP
-m7A8s1jX2I4Mj6imr/9YN3XJWTflHRFFEWr4tUDE7g4yqvdAnCJApYnKgqlOXcHw
-MC5771spq1nHIk0LaK0wzSkhu0raEtGm5fXa6XDoV1X2HqpDFwVLEiPko+DXy8+l
-pZTl6iMrm59DoPJ3zqSqBQ==
------END PRIVATE KEY-----
-`;
 
 export interface ISharepointClient {
   /**
@@ -79,23 +50,6 @@ export interface ISharepointClient {
    */
   processChanges(listId: string, changeToken: string): Promise<string>;
 }
-
-// interface UninitializedSharepointClientConfig {
-//   clientId: string;
-//   tenantId: string;
-//   thumbprint: string;
-//   privateKey: string;
-//   primaryDomain: string;
-//   siteName: string;
-//   listName: string;
-//   botpressKB: IBotpressKB;
-// }
-
-// interface InitializedSharepointClientConfig extends UninitializedSharepointClientConfig {
-//   listId: string;
-//   changeToken: string;
-// }
-
 export class SharepointClient implements ISharepointClient {
   private cca: msal.ConfidentialClientApplication;
   private primaryDomain: string;
@@ -103,28 +57,22 @@ export class SharepointClient implements ISharepointClient {
   private listName: string;
   private botpressKB: IBotpressKB;
 
-  constructor(
-    clientId: string,
-    tenantId: string,
-    thumbprint: string,
-    privateKey: string,
-    primaryDomain: string,
-    botpressKB: IBotpressKB
-  ) {
+  constructor(integrationConfiguration: bp.configuration.Configuration, botpressKB: IBotpressKB) {
     this.cca = new msal.ConfidentialClientApplication({
       auth: {
-        clientId,
-        authority: `https://login.microsoftonline.com/${tenantId}`,
+        clientId: integrationConfiguration.clientId,
+        authority: `https://login.microsoftonline.com/${integrationConfiguration.tenantId}`,
         clientCertificate: {
-          thumbprint,
-          privateKey: privatekeyplaceholder,
+          thumbprint: integrationConfiguration.thumbprint,
+          privateKey: formatPrivateKey(integrationConfiguration.privateKey),
         },
       },
     });
+
     this.botpressKB = botpressKB;
-    this.primaryDomain = primaryDomain;
-    this.siteName = "DemoStandardTeamPage"; // TODO (AJ): Make this configurable
-    this.listName = "Test List"; // TODO (AJ): Make this configurable
+    this.primaryDomain = integrationConfiguration.primaryDomain;
+    this.siteName = integrationConfiguration.siteName;
+    this.listName = integrationConfiguration.listName;
   }
 
   /**
@@ -143,7 +91,7 @@ export class SharepointClient implements ISharepointClient {
       }
       return token;
     } catch (e) {
-      throw new sdk.RuntimeError(`Error acquiring sp OAuth token`);
+      throw new sdk.RuntimeError(`Error while acquiring sp OAuth token ${e}`);
     }
   }
 
@@ -368,6 +316,7 @@ export class SharepointClient implements ISharepointClient {
     const newChangeToken = latestChange.ChangeToken.StringValue;
 
     const updatePromises = changesToList.map(async (change) => {
+      // The entire enum is available at https://learn.microsoft.com/en-us/previous-versions/office/sharepoint-csom/ee543793(v=office.15)
       switch (change.ChangeType) {
         case 1:
           const itemInfo = await this.getItemInfo(change.ItemId, change.ListId);
@@ -395,28 +344,23 @@ export class SharepointClient implements ISharepointClient {
 }
 
 /**
- * Configuration for the SharepointClient
- */
-interface Config {
-  clientId: string;
-  tenantId: string;
-  thumbprint: string;
-  privateKey: string;
-  primaryDomain: string;
-}
-
-/**
  * Factory function to create a SharepointClient
- * @param config - The configuration for the SharepointClient
+ * @param integrationConfiguration - The integration configuration object
+ * @param botpressKB - The BotpressKB object
  * @returns - The SharepointClient
  */
-export const getClient = (config: Config, botpressKB: IBotpressKB): ISharepointClient => {
-  return new SharepointClient(
-    config.clientId,
-    config.tenantId,
-    config.thumbprint,
-    config.privateKey,
-    config.primaryDomain,
-    botpressKB
-  );
+export const getClient = (
+  integrationConfiguration: bp.configuration.Configuration,
+  botpressKB: IBotpressKB
+): ISharepointClient => {
+  return new SharepointClient(integrationConfiguration, botpressKB);
+};
+
+/**
+ * A helper function to format the private key in the RS256 format ( There is probably a better way to do this ... )
+ * @param privateKey
+ * @returns
+ */
+const formatPrivateKey = (privateKey: string) => {
+  return `-----BEGIN PRIVATE KEY-----\n${privateKey.split(" ").join("\n")}\n-----END PRIVATE KEY-----`;
 };

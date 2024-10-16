@@ -14,6 +14,9 @@ export default new IntegrationDefinition({
       thumbprint: z.string().min(1).describe("The thumbprint"),
       privateKey: z.string().min(1).describe("The private key ++ "),
       primaryDomain: z.string().min(1).describe("The primary domain"),
+      siteName: z.string().min(1).describe("The site name"),
+      listName: z.string().min(1).describe("The list name"),
+      kbId: z.string().min(1).describe("The knowledge base ID to sync with"),
     }),
   },
   states: {
