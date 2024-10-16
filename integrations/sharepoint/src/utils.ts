@@ -13,3 +13,8 @@ export const handleAxiosError = (error: AxiosError) => {
     console.log("Error message:", error.message);
   }
 };
+
+export const stringToArrayBuffer = (str: string): ArrayBuffer => {
+  const encoder = new TextEncoder();
+  return encoder.encode(str).buffer;
+};

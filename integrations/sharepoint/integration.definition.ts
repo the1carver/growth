@@ -21,14 +21,15 @@ export default new IntegrationDefinition({
       type: "integration",
       schema: z.object({
         webhookSubscriptionId: z.string().min(1),
+        listId: z.string().min(1),
+        changeToken: z.string().min(1),
       }),
     },
   },
   actions: {
     testFunction: {
       title: "Test Function",
-      description:
-        "A test function to test a functionality that is in development",
+      description: "A test function to test a functionality that is in development",
       input: {
         // ui
         schema: z.object({}),
