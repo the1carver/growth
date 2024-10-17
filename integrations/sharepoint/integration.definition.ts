@@ -31,18 +31,5 @@ export default new IntegrationDefinition({
       }),
     },
   },
-  actions: {
-    testFunction: {
-      title: "Test Function",
-      description: "A test function to test a functionality that is in development",
-      input: {
-        // ui
-        schema: z.object({}),
-      },
-      output: {
-        // ui
-        schema: z.object({}),
-      },
-    },
-  },
+  actions: {},
 });

@@ -58,37 +58,7 @@ export default new bp.Integration({
       throw new sdk.RuntimeError(`Error unregistering webhook: ${e}`);
     }
   },
-  actions: {
-    testFunction: async () => {
-      // const {
-      //   state: {
-      //     payload: { listId, changeToken, webhookSubscriptionId },
-      //   },
-      // } = await client.getState({
-      //   type: "integration",
-      //   name: "configuration",
-      //   id: ctx.integrationId,
-      // });
-
-      // // @ts-expect-error - TODO: Fix this
-      // const spClient = getClient(ctx.configuration, new BotpressKB(client));
-      // // Process changes
-      // const newChangeToken = await spClient.processChanges(listId, changeToken);
-
-      // // Update the change token
-      // await client.setState({
-      //   type: "integration",
-      //   name: "configuration",
-      //   id: ctx.integrationId,
-      //   payload: {
-      //     webhookSubscriptionId,
-      //     listId,
-      //     changeToken: newChangeToken,
-      //   },
-      // });
-      return {};
-    },
-  },
+  actions: {},
   channels: {},
   handler: async ({ ctx, req, client, logger }) => {
     logger.forBot().info(`Received webhook call`);
