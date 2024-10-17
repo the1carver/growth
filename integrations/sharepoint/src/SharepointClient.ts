@@ -4,13 +4,10 @@ import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
 import { handleAxiosError } from "./utils";
 import { IBotpressKB } from "./BotpressKB";
-import {
-  ChangeItem,
-  ChangeResponse,
-  SharePointItem,
-  SharePointItemResponse,
-  SharePointItemsResponse,
-} from "./SharepointTypes";
+import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from "./SharepointTypes";
+import path from "path";
+
+const SUPPORTED_FILE_EXTENSIONS = [".txt", ".html", ".pdf", ".doc"];
 
 export interface ISharepointClient {
   /**
@@ -19,9 +16,9 @@ export interface ISharepointClient {
   getLatestChangeToken(): Promise<string | null>;
 
   /**
-   * A method to initialize all items in the sharepoint list in the botpress knowledge base
+   * A method to load all documents from the SharePoint document library into the Botpress Knowledge Base
    */
-  initializeItems(): Promise<void>;
+  loadAllDocumentsIntoBotpressKB(): Promise<void>;
 
   /**
    * A method to register a webhook
@@ -32,23 +29,21 @@ export interface ISharepointClient {
   /**
    * A method to unregister a webhook
    * @param webhookId - The webhook ID
-   * @param listId - The list ID
    */
   unregisterWebhook(webhookId: string): Promise<void>;
 
   /**
-   * A method to process changes from a SharePoint list
-   * @param listId - The list ID to process changes from
+   * A method to sync the SharePoint document library with the Botpress Knowledge Base
    * @param changeToken - The change token to process changes from
    * @returns - The new change token
    */
-  processChanges(changeToken: string): Promise<string>;
+  syncSharepointDocumentLibraryAndBotpressKB(changeToken: string): Promise<string>;
 }
 export class SharepointClient implements ISharepointClient {
   private cca: msal.ConfidentialClientApplication;
   private primaryDomain: string;
   private siteName: string;
-  private listName: string;
+  private documentLibraryName: string;
   private botpressKB: IBotpressKB;
 
   constructor(integrationConfiguration: bp.configuration.Configuration, botpressKB: IBotpressKB) {
@@ -66,7 +61,7 @@ export class SharepointClient implements ISharepointClient {
     this.botpressKB = botpressKB;
     this.primaryDomain = integrationConfiguration.primaryDomain;
     this.siteName = integrationConfiguration.siteName;
-    this.listName = integrationConfiguration.listName;
+    this.documentLibraryName = integrationConfiguration.documentLibraryName;
   }
 
   /**
@@ -90,11 +85,11 @@ export class SharepointClient implements ISharepointClient {
   }
 
   /**
-   * A method to initialize the list ID
+   * A method to return the list ID of the document library
    * @returns - The list ID
    */
-  private async getListId(): Promise<string> {
-    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.listName}')?$select=Title,Id`;
+  private async getDocumentLibraryListId(): Promise<string> {
+    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')?$select=Title,Id`;
     const token = await this.acquireToken();
     const res = await axios
       .get(url, {
@@ -128,37 +123,52 @@ export class SharepointClient implements ISharepointClient {
   }
 
   /**
-   * Add all the items from the SharePoint list to the Botpress Knowledge Base
+   * A method to download a file from SharePoint
+   * @param fileName - The name of the file to download
+   * @returns - The file content as an ArrayBuffer
    */
-  async initializeItems(): Promise<void> {
-    const items = await this.listItems();
+  private async downloadFile(fileName: string): Promise<ArrayBuffer> {
+    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/GetFolderByServerRelativeUrl('${this.documentLibraryName}')/Files('${fileName}')/$value`;
 
-    // Delete All existing files
-    await this.botpressKB.deleteAllFiles();
-
-    // Add all items to the Botpress Knowledge Base
-    const promises = items.map(async (item) => {
-      await this.botpressKB.addFile(
-        item.ID.toString(),
-        item.Title,
-        `Title: ${item.Title}\nCreated: ${item.Created}\nModified: ${item.Modified}`
-      );
+    const token = await this.acquireToken();
+    const authToken = `Bearer ${token.accessToken}`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: authToken,
+      },
     });
 
-    // Wait for all promises to complete.
-    await Promise.all(promises);
+    const arrayBuffer = await response.arrayBuffer();
+    return arrayBuffer;
   }
 
   /**
-   * Registers a webhook for a given list
-   * @param webhookurl - The URL to register the webhook to
+   * Add all the items from the SharePoint list to the Botpress Knowledge Base
+   */
+  async loadAllDocumentsIntoBotpressKB(): Promise<void> {
+    // Delete All existing files
+    await this.botpressKB.deleteAllFiles();
+
+    const documentLibraryListItems = await this.listItems();
+
+    const processDocuments = documentLibraryListItems.map(async (document) => {
+      const documentName = await this.getFileName(document.Id);
+      const content = await this.downloadFile(documentName);
+      await this.botpressKB.addFile(document.ID.toString(), documentName, content);
+    });
+
+    await Promise.all(processDocuments);
+  }
+
+  /**
+   * Registers a webhook for the configured document library.
+   * @param webhookurl - The URL to register the webhook to.
    * @returns - The webhook ID
    */
   async registerWebhook(webhookurl: string): Promise<string> {
     // Add Webhook
-    const listId = await this.getListId();
-
-    console.log(`Registering webhook for list: ${listId}`);
+    const listId = await this.getDocumentLibraryListId();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists('${listId}')/subscriptions`;
     const token = await this.acquireToken();
     const res = await axios
@@ -189,11 +199,11 @@ export class SharepointClient implements ISharepointClient {
   }
 
   /**
-   * Unregisters a webhook for a given list
-   * @param webhookId - The ID of the webhook to unregister
+   * Unregisters a webhook for the configured document library.
+   * @param webhookId - The ID of the webhook to unregister.
    */
   async unregisterWebhook(webhookId: string): Promise<void> {
-    const listId = this.getListId();
+    const listId = this.getDocumentLibraryListId();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists('${listId}')/subscriptions('${webhookId}')`;
     const token = await this.acquireToken();
     await axios
@@ -207,12 +217,12 @@ export class SharepointClient implements ISharepointClient {
   }
 
   /**
-   * Get the list of items from SharePoint from the configured list
-   * @returns - The list of items
+   * Get the list of documents from the configured document library.
+   * @returns - The list of documents.
    */
   private async listItems(): Promise<SharePointItem[]> {
     const token = await this.acquireToken();
-    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.listName}')/items`;
+    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/items`;
     const res = await axios.get<SharePointItemsResponse>(url, {
       headers: {
         Authorization: `Bearer ${token.accessToken}`,
@@ -223,27 +233,22 @@ export class SharepointClient implements ISharepointClient {
   }
 
   /**
-   * Get the Item info from SharePoint
-   * @param listItemIndex - The item index to get info for
-   * @returns
+   * Get the file name from the SharePoint list item
+   * @param listItemIndex - The item index to get the file name for
+   * @returns - The file name
    */
-  private async getItemInfo(listItemIndex: number): Promise<SharePointItemResponse> {
+  private async getFileName(listItemIndex: number): Promise<string> {
+    // sample url -https://botpressio836.sharepoint.com/sites/DemoStandardTeamPage/_api/web/lists/getbytitle('NewDL')/items(3)/File
+    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/items(${listItemIndex})/File`;
     const token = await this.acquireToken();
-    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.listName}')/items(${listItemIndex})`;
-    const res = await axios
-      .get<SharePointItemResponse>(url, {
-        headers: {
-          Authorization: `Bearer ${token.accessToken}`,
-          Accept: "application/json;odata=verbose",
-        },
-      })
-      .catch(handleAxiosError);
+    const res = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token.accessToken}`,
+        Accept: "application/json;odata=verbose",
+      },
+    });
 
-    if (!res) {
-      throw new sdk.RuntimeError(`Error getting file`);
-    }
-
-    return res.data;
+    return res.data.d.Name;
   }
 
   /**
@@ -252,7 +257,7 @@ export class SharepointClient implements ISharepointClient {
    */
   private async getChanges(changeToken: string | null): Promise<ChangeItem[]> {
     const token = await this.acquireToken();
-    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.listName}')/GetChanges`;
+    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/GetChanges`;
 
     type GetChangesPayload = {
       query: {
@@ -300,7 +305,7 @@ export class SharepointClient implements ISharepointClient {
   /**
    * Processes changes from a SharePoint list
    */
-  async processChanges(changeToken: string): Promise<string> {
+  async syncSharepointDocumentLibraryAndBotpressKB(changeToken: string): Promise<string> {
     const changes = await this.getChanges(changeToken);
 
     const latestChange = changes.at(-1);
@@ -314,23 +319,65 @@ export class SharepointClient implements ISharepointClient {
     const updatePromises = changes.map(async (change) => {
       // The entire enum is available at https://learn.microsoft.com/en-us/previous-versions/office/sharepoint-csom/ee543793(v=office.15)
       switch (change.ChangeType) {
-        case 1:
-          const itemInfo = await this.getItemInfo(change.ItemId);
-          await this.botpressKB.addFile(
-            itemInfo.d.ID.toString(),
-            itemInfo.d.Title,
-            `Title: ${itemInfo.d.Title}\nCreated: ${itemInfo.d.Created}\nModified: ${itemInfo.d.Modified}`
-          );
+        // ADD
+        case 1: {
+          try {
+            console.log(`Adding file: ${change.ItemId}`);
+            const fileName = await this.getFileName(change.ItemId);
+            const extension = path.extname(fileName);
+            if (!SUPPORTED_FILE_EXTENSIONS.includes(extension)) {
+              console.log(`File extension not supported for file: ${fileName}`);
+              break;
+            }
+            const content = await this.downloadFile(fileName);
+            await this.botpressKB.addFile(change.ItemId.toString(), fileName, content);
+          } catch (e) {
+            console.log(`Error adding file: ${change.ItemId}: ${e}`);
+          }
           break;
-        case 2:
-          throw new sdk.RuntimeError(`Change type not supported`);
-        case 3:
-          await this.botpressKB.deleteFile(change.ItemId.toString());
+        }
+        // Update
+        case 2: {
+          try {
+            console.log(`Updating file: ${change.ItemId}`);
+            const updatedFileName = await this.getFileName(change.ItemId);
+            const updatedContent = await this.downloadFile(updatedFileName);
+            // Delete the existing file and add the updated file
+            await this.botpressKB.deleteFile(change.ItemId.toString());
+            await this.botpressKB.addFile(change.ItemId.toString(), updatedFileName, updatedContent);
+          } catch (e) {
+            console.log(`Error updating file: ${change.ItemId}: ${e}`);
+          }
           break;
-        case 4:
-          throw new sdk.RuntimeError(`Change type not supported`);
-        default:
-          throw new sdk.RuntimeError(`Change type not supported`);
+        }
+        // Delete
+        case 3: {
+          try {
+            console.log(`Deleting file: ${change.ItemId}`);
+            await this.botpressKB.deleteFile(change.ItemId.toString());
+          } catch (e) {
+            console.log(`Error deleting file: ${change.ItemId}: ${e}`);
+          }
+          break;
+        }
+        // Rename
+        case 4: {
+          try {
+            console.log(`Renaming file: ${change.ItemId}`);
+            const renamedFileName = await this.getFileName(change.ItemId);
+            const content = await this.downloadFile(renamedFileName);
+            // Delete the existing file and add the updated file
+            await this.botpressKB.deleteFile(change.ItemId.toString());
+            await this.botpressKB.addFile(change.ItemId.toString(), renamedFileName, content);
+          } catch (e) {
+            console.log(`Error renaming file: ${change.ItemId}: ${e}`);
+          }
+          break;
+        }
+        default: {
+          console.log(`Change type not supported (yet): ${change.ChangeType}`);
+          break;
+        }
       }
     });
 
@@ -345,7 +392,7 @@ export class SharepointClient implements ISharepointClient {
  * @param botpressKB - The BotpressKB object
  * @returns - The SharepointClient
  */
-export const getClient = (
+export const createSharepointClient = (
   integrationConfiguration: bp.configuration.Configuration,
   botpressKB: IBotpressKB
 ): ISharepointClient => {

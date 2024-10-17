@@ -118,3 +118,54 @@ export type SharePointItemResponse = {
     GUID: string;
   };
 };
+
+// Deferred loading references for related resources
+interface Deferred {
+  uri: string;
+}
+
+// Main File interface representing each file object
+export interface SharePointFile {
+  __metadata: Metadata;
+  Author: { __deferred: Deferred };
+  CheckedOutByUser: { __deferred: Deferred };
+  EffectiveInformationRightsManagementSettings: { __deferred: Deferred };
+  InformationRightsManagementSettings: { __deferred: Deferred };
+  ListItemAllFields: { __deferred: Deferred };
+  LockedByUser: { __deferred: Deferred };
+  ModifiedBy: { __deferred: Deferred };
+  Properties: { __deferred: Deferred };
+  VersionEvents: { __deferred: Deferred };
+  VersionExpirationReport: { __deferred: Deferred };
+  Versions: { __deferred: Deferred };
+  CheckInComment: string;
+  CheckOutType: number;
+  ContentTag: string;
+  CustomizedPageStatus: number;
+  ETag: string;
+  Exists: boolean;
+  ExistsAllowThrowForPolicyFailures: boolean;
+  ExistsWithException: boolean;
+  IrmEnabled: boolean;
+  Length: string;
+  Level: number;
+  LinkingUri: string | null;
+  LinkingUrl: string;
+  MajorVersion: number;
+  MinorVersion: number;
+  Name: string;
+  ServerRelativeUrl: string;
+  TimeCreated: string;
+  TimeLastModified: string;
+  Title: string | null;
+  UIVersion: number;
+  UIVersionLabel: string;
+  UniqueId: string;
+}
+
+// Root response structure
+export interface SharePointFilesResponse {
+  d: {
+    results: SharePointFile[];
+  };
+}

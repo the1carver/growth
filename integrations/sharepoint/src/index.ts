@@ -1,20 +1,20 @@
 import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
 import { BotpressKB } from "./BotpressKB";
-import { getClient } from "./SharepointClient";
+import { createSharepointClient } from "./SharepointClient";
 import { log } from "console";
 
 export default new bp.Integration({
   register: async ({ ctx, webhookUrl, client, logger }) => {
     try {
-      const spClient = getClient(ctx.configuration, new BotpressKB(client, logger));
+      const spClient = createSharepointClient(ctx.configuration, new BotpressKB(client, logger));
 
       logger.forBot().info(`[Registeration]: Registering webhook with URL: ${webhookUrl}`);
       const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl);
       logger.forBot().info(`[Registeration]: Webhook registered successfully with ID: ${webhookSubscriptionId}`);
 
       logger.forBot().info(`[Registeration]: Initializing items in KB`);
-      await spClient.initializeItems();
+      await spClient.loadAllDocumentsIntoBotpressKB();
       logger.forBot().info(`[Registeration]: Items initialized successfully`);
 
       logger.forBot().info(`[Registeration]: Getting latest change token`);
@@ -48,7 +48,7 @@ export default new bp.Integration({
       logger.forBot().info(`Unregistering webhook with ID: ${state.payload.webhookSubscriptionId}`);
 
       if (state.payload.webhookSubscriptionId.length) {
-        const spClient = getClient(ctx.configuration, new BotpressKB(client, logger));
+        const spClient = createSharepointClient(ctx.configuration, new BotpressKB(client, logger));
 
         spClient.unregisterWebhook(state.payload.webhookSubscriptionId);
 
@@ -104,7 +104,7 @@ export default new bp.Integration({
     // - The webhook is not public ( user responsible for securing the webhook, additional security measures can be added )
     // - The webhook is receiving notifications for the correct sharepoint site and list / library ( This is ensured as the subscription is created for a specific list / library )
 
-    const spClient = getClient(ctx.configuration, new BotpressKB(client, logger));
+    const spClient = createSharepointClient(ctx.configuration, new BotpressKB(client, logger));
 
     const {
       state: {
@@ -117,7 +117,7 @@ export default new bp.Integration({
     });
 
     // Process changes
-    const newChangeToken = await spClient.processChanges(changeToken);
+    const newChangeToken = await spClient.syncSharepointDocumentLibraryAndBotpressKB(changeToken);
 
     // Update the change token
     await client.setState({

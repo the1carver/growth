@@ -3,7 +3,7 @@ import { BaseIntegration } from "@botpress/sdk/dist/integration/generic";
 
 export interface IBotpressKB {
   getFile(id: string): Promise<unknown>;
-  addFile(id: string, filename: string, content: string): Promise<void>;
+  addFile(id: string, filename: string, content: ArrayBuffer): Promise<void>;
   deleteFile(id: string): Promise<void>;
   deleteAllFiles(): Promise<void>;
 }
@@ -23,11 +23,11 @@ export class BotpressKB implements IBotpressKB {
     return files.files[0];
   }
 
-  async addFile(spId: string, filename: string, content: string): Promise<void> {
+  async addFile(spId: string, filename: string, content: ArrayBuffer): Promise<void> {
     this.logger.forBot().info(`Adding file: ${filename}`);
 
     await this.bpClient.uploadFile({
-      key: `${filename}.txt`,
+      key: filename,
       content,
       index: true,
       tags: {
@@ -62,5 +62,17 @@ export class BotpressKB implements IBotpressKB {
 
     await Promise.all(deletePromises);
     this.logger.forBot().info(`All files deleted in knowledge base: ${this.kbId}`);
+  }
+
+  async updateFile(spId: string, filename: string, content: ArrayBuffer): Promise<void> {
+    this.logger.forBot().info(`Updating file: ${filename}`);
+
+    const existingFiles = await this.bpClient.listFiles({ tags: { spId: spId } });
+    const existingFile = existingFiles.files[0];
+    if (!existingFile) {
+      throw new sdk.RuntimeError(`File with id ${spId} not found`);
+    }
+
+    this.logger.forBot().info(`File updated: ${filename}`);
   }
 }

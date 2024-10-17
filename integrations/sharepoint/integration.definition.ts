@@ -12,10 +12,13 @@ export default new IntegrationDefinition({
       clientId: z.string().min(1).describe("The client ID"),
       tenantId: z.string().min(1).describe("The tenant ID"),
       thumbprint: z.string().min(1).describe("The thumbprint"),
-      privateKey: z.string().min(1).describe("The private key ++ "),
+      privateKey: z.string().min(1).describe("The private key"),
       primaryDomain: z.string().min(1).describe("The primary domain"),
-      siteName: z.string().min(1).describe("The site name"),
-      listName: z.string().min(1).describe("The list name"),
+      siteName: z.string().min(1).describe("The name of the Sharepoint site."),
+      documentLibraryName: z
+        .string()
+        .min(1)
+        .describe("The name of the Document Library that you wan to sync a Botpress knowledge base with."),
       kbId: z.string().min(1).describe("The knowledge base ID to sync with"),
     }),
   },
