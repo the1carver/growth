@@ -24,7 +24,6 @@ export default new IntegrationDefinition({
       type: "integration",
       schema: z.object({
         webhookSubscriptionId: z.string().min(1),
-        listId: z.string().min(1),
         changeToken: z.string().min(1),
       }),
     },

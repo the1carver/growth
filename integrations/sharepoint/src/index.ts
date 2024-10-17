@@ -2,25 +2,27 @@ import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
 import { BotpressKB } from "./BotpressKB";
 import { getClient } from "./SharepointClient";
+import { log } from "console";
 
 export default new bp.Integration({
   register: async ({ ctx, webhookUrl, client, logger }) => {
     try {
-      // @ts-expect-error - AJ - I need to fix the type, but this should help with intellisense for now.
       const spClient = getClient(ctx.configuration, new BotpressKB(client, logger));
 
-      const listId = await spClient.getListId();
+      logger.forBot().info(`[Registeration]: Registering webhook with URL: ${webhookUrl}`);
+      const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl);
+      logger.forBot().info(`[Registeration]: Webhook registered successfully with ID: ${webhookSubscriptionId}`);
 
+      logger.forBot().info(`[Registeration]: Initializing items in KB`);
       await spClient.initializeItems();
+      logger.forBot().info(`[Registeration]: Items initialized successfully`);
 
-      logger.forBot().info(`Registering webhook (${webhookUrl}) for list: ${listId}`);
-
-      const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl, listId);
-
+      logger.forBot().info(`[Registeration]: Getting latest change token`);
       const changeToken = await spClient.getLatestChangeToken();
       if (!changeToken) {
         throw new sdk.RuntimeError(`Error getting change token`);
       }
+      logger.forBot().info(`[Registeration]: Change token initialized successfully`);
 
       await client.setState({
         type: "integration",
@@ -28,15 +30,11 @@ export default new bp.Integration({
         id: ctx.integrationId,
         payload: {
           webhookSubscriptionId,
-          listId,
           changeToken,
         },
       });
-
-      logger.forBot().info(`Webhook registered successfully with ID: ${webhookSubscriptionId}`);
     } catch (e) {
-      // This shouldn't be happing. But it does.
-      logger.forBot().error(`Error registering webhook: ${e}`);
+      throw new sdk.RuntimeError(`Error registering integration: ${e}`);
     }
   },
   unregister: async ({ client, ctx, logger }) => {
@@ -50,10 +48,9 @@ export default new bp.Integration({
       logger.forBot().info(`Unregistering webhook with ID: ${state.payload.webhookSubscriptionId}`);
 
       if (state.payload.webhookSubscriptionId.length) {
-        // @ts-expect-error - TODO: Fix this
         const spClient = getClient(ctx.configuration, new BotpressKB(client, logger));
 
-        spClient.unregisterWebhook(state.payload.webhookSubscriptionId, state.payload.listId);
+        spClient.unregisterWebhook(state.payload.webhookSubscriptionId);
 
         logger.forBot().info(`Webhook unregistered successfully`);
       }
@@ -103,27 +100,15 @@ export default new bp.Integration({
       return { status: 200, body: validationToken };
     }
 
-    // Check if the request has a body, if not, log and return
-    if (!req.body) {
-      logger.forBot().error(`Webhook called without a body`);
-      return { status: 200, body: "OK" };
-    }
+    // Note: We are skipping validation under few assumptions:
+    // - The webhook is not public ( user responsible for securing the webhook, additional security measures can be added )
+    // - The webhook is receiving notifications for the correct sharepoint site and list / library ( This is ensured as the subscription is created for a specific list / library )
 
-    const body = JSON.parse(req.body);
-    const tenantId = body.value[0].tenantId;
-    const resource = body.value[0].resource;
-    // @ts-expect-error - TODO: Fix this
     const spClient = getClient(ctx.configuration, new BotpressKB(client, logger));
-
-    // Check if the tenantId matches the configuration, if not, log and return
-    if (ctx.configuration.tenantId !== tenantId) {
-      logger.forBot().error(`Webhook called for a different tenant: ${tenantId}`);
-      return { status: 200, body: "OK" };
-    }
 
     const {
       state: {
-        payload: { listId, changeToken, webhookSubscriptionId },
+        payload: { changeToken, webhookSubscriptionId },
       },
     } = await client.getState({
       type: "integration",
@@ -131,14 +116,8 @@ export default new bp.Integration({
       id: ctx.integrationId,
     });
 
-    // Check if the resource matches the listId, if not, log and return
-    if (resource !== listId) {
-      logger.forBot().error(`Webhook called for a different list: ${resource}, expected: ${listId} got ${resource}`);
-      return { status: 200, body: "OK" };
-    }
-
     // Process changes
-    const newChangeToken = await spClient.processChanges(listId, changeToken);
+    const newChangeToken = await spClient.processChanges(changeToken);
 
     // Update the change token
     await client.setState({
@@ -147,7 +126,6 @@ export default new bp.Integration({
       id: ctx.integrationId,
       payload: {
         webhookSubscriptionId,
-        listId,
         changeToken: newChangeToken,
       },
     });

@@ -14,11 +14,6 @@ import {
 
 export interface ISharepointClient {
   /**
-   * A method to get the list ID
-   */
-  getListId(): Promise<string>;
-
-  /**
    * A method to get the latest change token
    */
   getLatestChangeToken(): Promise<string | null>;
@@ -31,16 +26,15 @@ export interface ISharepointClient {
   /**
    * A method to register a webhook
    * @param webhookurl - The webhook URL
-   * @param listId - The list ID
    */
-  registerWebhook(webhookurl: string, listId: string): Promise<string>;
+  registerWebhook(webhookurl: string): Promise<string>;
 
   /**
    * A method to unregister a webhook
    * @param webhookId - The webhook ID
    * @param listId - The list ID
    */
-  unregisterWebhook(webhookId: string, listId: string): Promise<void>;
+  unregisterWebhook(webhookId: string): Promise<void>;
 
   /**
    * A method to process changes from a SharePoint list
@@ -48,7 +42,7 @@ export interface ISharepointClient {
    * @param changeToken - The change token to process changes from
    * @returns - The new change token
    */
-  processChanges(listId: string, changeToken: string): Promise<string>;
+  processChanges(changeToken: string): Promise<string>;
 }
 export class SharepointClient implements ISharepointClient {
   private cca: msal.ConfidentialClientApplication;
@@ -99,7 +93,7 @@ export class SharepointClient implements ISharepointClient {
    * A method to initialize the list ID
    * @returns - The list ID
    */
-  async getListId(): Promise<string> {
+  private async getListId(): Promise<string> {
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.listName}')?$select=Title,Id`;
     const token = await this.acquireToken();
     const res = await axios
@@ -160,8 +154,11 @@ export class SharepointClient implements ISharepointClient {
    * @param webhookurl - The URL to register the webhook to
    * @returns - The webhook ID
    */
-  async registerWebhook(webhookurl: string, listId: string): Promise<string> {
+  async registerWebhook(webhookurl: string): Promise<string> {
     // Add Webhook
+    const listId = await this.getListId();
+
+    console.log(`Registering webhook for list: ${listId}`);
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists('${listId}')/subscriptions`;
     const token = await this.acquireToken();
     const res = await axios
@@ -195,7 +192,8 @@ export class SharepointClient implements ISharepointClient {
    * Unregisters a webhook for a given list
    * @param webhookId - The ID of the webhook to unregister
    */
-  async unregisterWebhook(webhookId: string, listId: string): Promise<void> {
+  async unregisterWebhook(webhookId: string): Promise<void> {
+    const listId = this.getListId();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists('${listId}')/subscriptions('${webhookId}')`;
     const token = await this.acquireToken();
     await axios
@@ -226,13 +224,12 @@ export class SharepointClient implements ISharepointClient {
 
   /**
    * Get the Item info from SharePoint
-   * @param ItemIndex - The item index to get info for
-   * @param listId - The list ID to get the item info from
+   * @param listItemIndex - The item index to get info for
    * @returns
    */
-  private async getItemInfo(ItemIndex: number, listId: string): Promise<SharePointItemResponse> {
+  private async getItemInfo(listItemIndex: number): Promise<SharePointItemResponse> {
     const token = await this.acquireToken();
-    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/Web/Lists(guid'${listId}')/Items(${ItemIndex})/`;
+    const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.listName}')/items(${listItemIndex})`;
     const res = await axios
       .get<SharePointItemResponse>(url, {
         headers: {
@@ -303,11 +300,10 @@ export class SharepointClient implements ISharepointClient {
   /**
    * Processes changes from a SharePoint list
    */
-  async processChanges(listId: string, changeToken: string): Promise<string> {
-    const allChanges = await this.getChanges(changeToken);
-    const changesToList = allChanges.filter((change) => change.ListId === listId);
+  async processChanges(changeToken: string): Promise<string> {
+    const changes = await this.getChanges(changeToken);
 
-    const latestChange = allChanges.at(-1);
+    const latestChange = changes.at(-1);
     if (!latestChange) {
       console.log("No changes to process");
       return changeToken;
@@ -315,11 +311,11 @@ export class SharepointClient implements ISharepointClient {
 
     const newChangeToken = latestChange.ChangeToken.StringValue;
 
-    const updatePromises = changesToList.map(async (change) => {
+    const updatePromises = changes.map(async (change) => {
       // The entire enum is available at https://learn.microsoft.com/en-us/previous-versions/office/sharepoint-csom/ee543793(v=office.15)
       switch (change.ChangeType) {
         case 1:
-          const itemInfo = await this.getItemInfo(change.ItemId, change.ListId);
+          const itemInfo = await this.getItemInfo(change.ItemId);
           await this.botpressKB.addFile(
             itemInfo.d.ID.toString(),
             itemInfo.d.Title,
