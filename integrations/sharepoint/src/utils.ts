@@ -18,3 +18,12 @@ export const stringToArrayBuffer = (str: string): ArrayBuffer => {
   const encoder = new TextEncoder();
   return encoder.encode(str).buffer;
 };
+
+export const getFormatedCurrTime = (): string => {
+  const date = new Date();
+  const timeParts = date.toLocaleTimeString().split(" ");
+  const time = timeParts[0];
+  const period = timeParts[1] || ""; // Handles cases without AM/PM
+
+  return `${time}.${date.getMilliseconds().toString().padStart(3, "0")} ${period}`;
+};
