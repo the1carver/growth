@@ -158,6 +158,10 @@ export class SharepointClient implements ISharepointClient {
         this.log(`File does not exist for item: ${document.Id}`);
         return;
       }
+      if (!SUPPORTED_FILE_EXTENSIONS.includes(path.extname(documentName))) {
+        this.log(`File extension not supported for file: ${documentName}`);
+        return;
+      }
       const content = await this.downloadFile(documentName);
       await this.botpressKB.addFile(document.ID.toString(), documentName, content);
     });
