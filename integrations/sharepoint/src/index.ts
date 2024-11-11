@@ -7,7 +7,10 @@ import { log } from "console";
 export default new bp.Integration({
   register: async ({ ctx, webhookUrl, client, logger }) => {
     try {
-      const spClient = createSharepointClient(ctx.configuration, new BotpressKB(client, logger));
+      const spClient = createSharepointClient(
+        ctx.configuration,
+        new BotpressKB(client, ctx.configuration.kbId, logger)
+      );
 
       logger.forBot().info(`[Registeration]: Registering webhook with URL: ${webhookUrl}`);
       const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl);
@@ -48,7 +51,10 @@ export default new bp.Integration({
       logger.forBot().info(`Unregistering webhook with ID: ${state.payload.webhookSubscriptionId}`);
 
       if (state.payload.webhookSubscriptionId.length) {
-        const spClient = createSharepointClient(ctx.configuration, new BotpressKB(client, logger));
+        const spClient = createSharepointClient(
+          ctx.configuration,
+          new BotpressKB(client, ctx.configuration.kbId, logger)
+        );
 
         spClient.unregisterWebhook(state.payload.webhookSubscriptionId);
 
@@ -74,7 +80,7 @@ export default new bp.Integration({
     // - The webhook is not public ( user responsible for securing the webhook, additional security measures can be added )
     // - The webhook is receiving notifications for the correct sharepoint site and list / library ( This is ensured as the subscription is created for a specific list / library )
 
-    const spClient = createSharepointClient(ctx.configuration, new BotpressKB(client, logger));
+    const spClient = createSharepointClient(ctx.configuration, new BotpressKB(client, ctx.configuration.kbId, logger));
 
     const {
       state: {

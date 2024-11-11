@@ -11,11 +11,12 @@ export interface IBotpressKB {
 export class BotpressKB implements IBotpressKB {
   private bpClient: sdk.IntegrationSpecificClient<any>;
   private logger: sdk.IntegrationLogger;
-  private kbId = "kb-93e4276fec"; // TODO: This should be in the configuration
+  private kbId: string;
 
-  constructor(bpClient: sdk.IntegrationSpecificClient<any>, logger: sdk.IntegrationLogger) {
+  constructor(bpClient: sdk.IntegrationSpecificClient<any>, kbId: string, logger: sdk.IntegrationLogger) {
     this.bpClient = bpClient;
     this.logger = logger;
+    this.kbId = kbId;
   }
 
   async getFile(spId: string): Promise<unknown> {
