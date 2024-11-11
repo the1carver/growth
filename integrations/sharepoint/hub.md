@@ -42,7 +42,7 @@ To setup the connector you need need an App registration with the correct API pe
 
 ### How to update API permissions for your app registration
 
-_(note: some of the these permissions might be excessions, todo: review and update doc.)_
+_Note: some of the these permissions might be excessive, todo: review and update doc._
 
 - Go to “API Permissions” ( it should be under the Manage Group, in your App Registration "
 - Click “Add a permissions”
