@@ -7,7 +7,7 @@ import { IBotpressKB } from "./BotpressKB";
 import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from "./SharepointTypes";
 import path from "path";
 
-const SUPPORTED_FILE_EXTENSIONS = [".txt", ".html", ".pdf", ".doc"];
+const SUPPORTED_FILE_EXTENSIONS = [".txt", ".html", ".pdf", ".doc", ".docx"];
 
 export interface ISharepointClient {
   /**
