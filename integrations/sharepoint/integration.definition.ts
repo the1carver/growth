@@ -4,6 +4,8 @@ import { integrationName } from "./package.json";
 export default new IntegrationDefinition({
   name: integrationName,
   version: "0.0.1",
+  title: "Sharepoint",
+  description: "Sync a Botpress knowledge base with a Sharepoint document library.",
   readme: "hub.md",
   icon: "icon.svg",
   configuration: {
