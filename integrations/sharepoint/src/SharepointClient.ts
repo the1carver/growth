@@ -330,50 +330,38 @@ export class SharepointClient {
         }
         // Update
         case 2: {
-          try {
-            this.log(`Updating item: ${change.ItemId}`);
-            const updatedFileName = await this.getFileName(change.ItemId);
-            if (!updatedFileName) {
-              this.log(`File does not exist for item: ${change.ItemId}`);
-              break;
-            }
-            this.log(`Updated file name: ${updatedFileName}`);
-            const updatedContent = await this.downloadFile(updatedFileName);
-            // Delete the existing file and add the updated file
-            await this.botpressKB.deleteFile(change.ItemId.toString());
-            await this.botpressKB.addFile(change.ItemId.toString(), updatedFileName, updatedContent);
-          } catch (e) {
-            this.log(`Error updating file: ${change.ItemId}: ${e}`);
+          this.log(`Updating item: ${change.ItemId}`);
+          const updatedFileName = await this.getFileName(change.ItemId);
+          if (!updatedFileName) {
+            this.log(`File does not exist for item: ${change.ItemId}`);
+            break;
           }
+          this.log(`Updated file name: ${updatedFileName}`);
+          const updatedContent = await this.downloadFile(updatedFileName);
+          // Delete the existing file and add the updated file
+          await this.botpressKB.deleteFile(change.ItemId.toString());
+          await this.botpressKB.addFile(change.ItemId.toString(), updatedFileName, updatedContent);
           break;
         }
         // Delete
         case 3: {
-          try {
-            this.log(`Deleting item: ${change.ItemId}`);
-            await this.botpressKB.deleteFile(change.ItemId.toString());
-          } catch (e) {
-            this.log(`Error deleting file: ${change.ItemId}: ${e}`);
-          }
+          this.log(`Deleting item: ${change.ItemId}`);
+          await this.botpressKB.deleteFile(change.ItemId.toString());
           break;
         }
         // Rename
         case 4: {
-          try {
-            this.log(`Renaming item: ${change.ItemId}`);
-            const renamedFileName = await this.getFileName(change.ItemId);
-            if (!renamedFileName) {
-              this.log(`File does not exist for item: ${change.ItemId}`);
-              break;
-            }
-            this.log(`Renamed file name: ${renamedFileName}`);
-            const content = await this.downloadFile(renamedFileName);
-            // Delete the existing file and add the updated file
-            await this.botpressKB.deleteFile(change.ItemId.toString());
-            await this.botpressKB.addFile(change.ItemId.toString(), renamedFileName, content);
-          } catch (e) {
-            this.log(`Error renaming file: ${change.ItemId}: ${e}`);
+          this.log(`Renaming item: ${change.ItemId}`);
+          const renamedFileName = await this.getFileName(change.ItemId);
+          if (!renamedFileName) {
+            this.log(`File does not exist for item: ${change.ItemId}`);
+            break;
           }
+          this.log(`Renamed file name: ${renamedFileName}`);
+          const content = await this.downloadFile(renamedFileName);
+          // Delete the existing file and add the updated file
+          await this.botpressKB.deleteFile(change.ItemId.toString());
+          await this.botpressKB.addFile(change.ItemId.toString(), renamedFileName, content);
           break;
         }
         default: {
