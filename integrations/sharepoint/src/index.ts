@@ -9,20 +9,20 @@ export default new bp.Integration({
     try {
       const spClient = new SharepointClient(ctx.configuration, new BotpressKB(client, ctx.configuration.kbId, logger));
 
-      logger.forBot().info(`[Registeration]: Registering webhook with URL: ${webhookUrl}`);
+      logger.forBot().info(`[Registration]: Registering webhook with URL: ${webhookUrl}`);
       const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl);
-      logger.forBot().info(`[Registeration]: Webhook registered successfully with ID: ${webhookSubscriptionId}`);
+      logger.forBot().info(`[Registration]: Webhook registered successfully with ID: ${webhookSubscriptionId}`);
 
-      logger.forBot().info(`[Registeration]: Initializing items in KB`);
+      logger.forBot().info(`[Registration]: Initializing items in KB`);
       await spClient.loadAllDocumentsIntoBotpressKB();
-      logger.forBot().info(`[Registeration]: Items initialized successfully`);
+      logger.forBot().info(`[Registration]: Items initialized successfully`);
 
-      logger.forBot().info(`[Registeration]: Getting latest change token`);
+      logger.forBot().info(`[Registration]: Getting latest change token`);
       const changeToken = await spClient.getLatestChangeToken();
       if (!changeToken) {
         throw new sdk.RuntimeError(`Error getting change token`);
       }
-      logger.forBot().info(`[Registeration]: Change token initialized successfully`);
+      logger.forBot().info(`[Registration]: Change token initialized successfully`);
 
       await client.setState({
         type: "integration",
