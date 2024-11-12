@@ -35,10 +35,10 @@ export class SharepointClient {
   }
 
   /**
-   * A method to acquire a token from Azure AD
+   * A method to fetch a token from Azure AD
    * @returns - The token
    */
-  private async acquireToken(): Promise<msal.AuthenticationResult> {
+  private async fetchToken(): Promise<msal.AuthenticationResult> {
     try {
       const tokenRequest = {
         scopes: [`https://${this.primaryDomain}.sharepoint.com/.default`],
@@ -60,7 +60,7 @@ export class SharepointClient {
    */
   private async getDocumentLibraryListId(): Promise<string> {
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')?$select=Title,Id`;
-    const token = await this.acquireToken();
+    const token = await this.fetchToken();
     const res = await axios
       .get(url, {
         headers: {
@@ -100,7 +100,7 @@ export class SharepointClient {
   private async downloadFile(fileName: string): Promise<ArrayBuffer> {
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/GetFolderByServerRelativeUrl('${this.documentLibraryName}')/Files('${fileName}')/$value`;
 
-    const token = await this.acquireToken();
+    const token = await this.fetchToken();
     const authToken = `Bearer ${token.accessToken}`;
     const response = await fetch(url, {
       method: "GET",
@@ -148,7 +148,7 @@ export class SharepointClient {
     // Add Webhook
     const listId = await this.getDocumentLibraryListId();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists('${listId}')/subscriptions`;
-    const token = await this.acquireToken();
+    const token = await this.fetchToken();
     const res = await axios
       .post(
         url,
@@ -183,7 +183,7 @@ export class SharepointClient {
   async unregisterWebhook(webhookId: string): Promise<void> {
     const listId = this.getDocumentLibraryListId();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists('${listId}')/subscriptions('${webhookId}')`;
-    const token = await this.acquireToken();
+    const token = await this.fetchToken();
     await axios
       .delete(url, {
         headers: {
@@ -199,7 +199,7 @@ export class SharepointClient {
    * @returns - The list of documents.
    */
   private async listItems(): Promise<SharePointItem[]> {
-    const token = await this.acquireToken();
+    const token = await this.fetchToken();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/items`;
     const res = await axios.get<SharePointItemsResponse>(url, {
       headers: {
@@ -218,7 +218,7 @@ export class SharepointClient {
   private async getFileName(listItemIndex: number): Promise<string | null> {
     // sample url -https://botpressio836.sharepoint.com/sites/DemoStandardTeamPage/_api/web/lists/getbytitle('NewDL')/items(3)/File
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/items(${listItemIndex})/File`;
-    const token = await this.acquireToken();
+    const token = await this.fetchToken();
     const res = await axios
       .get(url, {
         headers: {
@@ -243,7 +243,7 @@ export class SharepointClient {
    * @returns - The list of changes
    */
   private async getChanges(changeToken: string | null): Promise<ChangeItem[]> {
-    const token = await this.acquireToken();
+    const token = await this.fetchToken();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/GetChanges`;
 
     type GetChangesPayload = {
