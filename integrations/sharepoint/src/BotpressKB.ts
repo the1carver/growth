@@ -1,15 +1,6 @@
 import * as sdk from "@botpress/sdk";
-import { BaseIntegration } from "@botpress/sdk/dist/integration/generic";
 import { getFormatedCurrTime } from "./utils";
-
-export interface IBotpressKB {
-  getFile(id: string): Promise<unknown>;
-  addFile(id: string, filename: string, content: ArrayBuffer): Promise<void>;
-  deleteFile(id: string): Promise<void>;
-  deleteAllFiles(): Promise<void>;
-}
-
-export class BotpressKB implements IBotpressKB {
+export class BotpressKB {
   private bpClient: sdk.IntegrationSpecificClient<any>;
   private logger: sdk.IntegrationLogger;
   private kbId: string;

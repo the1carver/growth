@@ -3,7 +3,7 @@ import * as msal from "@azure/msal-node";
 import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
 import { getFormatedCurrTime, handleAxiosError } from "./utils";
-import { IBotpressKB } from "./BotpressKB";
+import { BotpressKB } from "./BotpressKB";
 import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from "./SharepointTypes";
 import path from "path";
 
@@ -44,9 +44,9 @@ export class SharepointClient implements ISharepointClient {
   private primaryDomain: string;
   private siteName: string;
   private documentLibraryName: string;
-  private botpressKB: IBotpressKB;
+  private botpressKB: BotpressKB;
 
-  constructor(integrationConfiguration: bp.configuration.Configuration, botpressKB: IBotpressKB) {
+  constructor(integrationConfiguration: bp.configuration.Configuration, botpressKB: BotpressKB) {
     this.cca = new msal.ConfidentialClientApplication({
       auth: {
         clientId: integrationConfiguration.clientId,
@@ -426,7 +426,7 @@ export class SharepointClient implements ISharepointClient {
  */
 export const createSharepointClient = (
   integrationConfiguration: bp.configuration.Configuration,
-  botpressKB: IBotpressKB
+  botpressKB: BotpressKB
 ): ISharepointClient => {
   return new SharepointClient(integrationConfiguration, botpressKB);
 };
