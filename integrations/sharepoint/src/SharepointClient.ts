@@ -2,7 +2,7 @@ import axios from "axios";
 import * as msal from "@azure/msal-node";
 import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
-import { getFormatedCurrTime, handleAxiosError } from "./utils";
+import { formatPrivateKey, getFormatedCurrTime, handleAxiosError } from "./utils";
 import { BotpressKB } from "./BotpressKB";
 import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from "./SharepointTypes";
 import path from "path";
@@ -375,25 +375,3 @@ export class SharepointClient {
     return newChangeToken;
   }
 }
-
-/**
- * Factory function to create a SharepointClient
- * @param integrationConfiguration - The integration configuration object
- * @param botpressKB - The BotpressKB object
- * @returns - The SharepointClient
- */
-export const createSharepointClient = (
-  integrationConfiguration: bp.configuration.Configuration,
-  botpressKB: BotpressKB
-): SharepointClient => {
-  return new SharepointClient(integrationConfiguration, botpressKB);
-};
-
-/**
- * A helper function to format the private key in the RS256 format ( There is probably a better way to do this ... )
- * @param privateKey
- * @returns
- */
-const formatPrivateKey = (privateKey: string) => {
-  return `-----BEGIN PRIVATE KEY-----\n${privateKey.split(" ").join("\n")}\n-----END PRIVATE KEY-----`;
-};

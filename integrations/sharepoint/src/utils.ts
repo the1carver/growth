@@ -27,3 +27,12 @@ export const getFormatedCurrTime = (): string => {
 
   return `${time}.${date.getMilliseconds().toString().padStart(3, "0")} ${period}`;
 };
+
+/**
+ * A helper function to format the private key in the RS256 format ( There is probably a better way to do this ... )
+ * @param privateKey
+ * @returns
+ */
+export const formatPrivateKey = (privateKey: string) => {
+  return `-----BEGIN PRIVATE KEY-----\n${privateKey.split(" ").join("\n")}\n-----END PRIVATE KEY-----`;
+};
