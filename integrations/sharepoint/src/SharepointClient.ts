@@ -9,37 +9,7 @@ import path from "path";
 
 const SUPPORTED_FILE_EXTENSIONS = [".txt", ".html", ".pdf", ".doc", ".docx"];
 
-export interface ISharepointClient {
-  /**
-   * A method to get the latest change token
-   */
-  getLatestChangeToken(): Promise<string | null>;
-
-  /**
-   * A method to load all documents from the SharePoint document library into the Botpress Knowledge Base
-   */
-  loadAllDocumentsIntoBotpressKB(): Promise<void>;
-
-  /**
-   * A method to register a webhook
-   * @param webhookurl - The webhook URL
-   */
-  registerWebhook(webhookurl: string): Promise<string>;
-
-  /**
-   * A method to unregister a webhook
-   * @param webhookId - The webhook ID
-   */
-  unregisterWebhook(webhookId: string): Promise<void>;
-
-  /**
-   * A method to sync the SharePoint document library with the Botpress Knowledge Base
-   * @param changeToken - The change token to process changes from
-   * @returns - The new change token
-   */
-  syncSharepointDocumentLibraryAndBotpressKB(changeToken: string): Promise<string>;
-}
-export class SharepointClient implements ISharepointClient {
+export class SharepointClient {
   private cca: msal.ConfidentialClientApplication;
   private primaryDomain: string;
   private siteName: string;
@@ -427,7 +397,7 @@ export class SharepointClient implements ISharepointClient {
 export const createSharepointClient = (
   integrationConfiguration: bp.configuration.Configuration,
   botpressKB: BotpressKB
-): ISharepointClient => {
+): SharepointClient => {
   return new SharepointClient(integrationConfiguration, botpressKB);
 };
 
