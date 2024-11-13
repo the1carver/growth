@@ -83,11 +83,7 @@ export class SharepointClient {
   async getLatestChangeToken(): Promise<string | null> {
     const changes = await this.getChanges(null);
     if (changes.length > 0) {
-      const latestChange = changes.at(-1);
-      if (!latestChange) {
-        throw new sdk.RuntimeError(`Error initializing change token`);
-      }
-      return latestChange.ChangeToken.StringValue;
+      return changes.at(-1)!.ChangeToken.StringValue;
     }
     return null;
   }
@@ -299,13 +295,12 @@ export class SharepointClient {
   async syncSharepointDocumentLibraryAndBotpressKB(changeToken: string): Promise<string> {
     const changes = await this.getChanges(changeToken);
 
-    const latestChange = changes.at(-1);
-    if (!latestChange) {
+    if (changes.length === 0) {
       console.log("No changes to process");
       return changeToken;
     }
 
-    const newChangeToken = latestChange.ChangeToken.StringValue;
+    const newChangeToken = changes.at(-1)!.ChangeToken.StringValue;
 
     // Process changes in series
     for (const change of changes) {
