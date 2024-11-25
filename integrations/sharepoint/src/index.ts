@@ -2,19 +2,21 @@ import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
 import { BotpressKB } from "./BotpressKB";
 import { SharepointClient } from "./SharepointClient";
-import { log } from "console";
+import { SharepointSync } from "./SharepointSync";
 
 export default new bp.Integration({
   register: async ({ ctx, webhookUrl, client, logger }) => {
     try {
-      const spClient = new SharepointClient(ctx.configuration, new BotpressKB(client, ctx.configuration.kbId, logger));
+      const spClient = new SharepointClient(ctx.configuration);
+      const botpressKB = new BotpressKB(client, ctx.configuration.kbId, logger);
+      const spSync = new SharepointSync(spClient, botpressKB);
 
       logger.forBot().info(`[Registration]: Registering webhook with URL: ${webhookUrl}`);
       const webhookSubscriptionId = await spClient.registerWebhook(webhookUrl);
       logger.forBot().info(`[Registration]: Webhook registered successfully with ID: ${webhookSubscriptionId}`);
 
       logger.forBot().info(`[Registration]: Initializing items in KB`);
-      await spClient.loadAllDocumentsIntoBotpressKB();
+      await spSync.loadAllDocumentsIntoBotpressKB();
       logger.forBot().info(`[Registration]: Items initialized successfully`);
 
       logger.forBot().info(`[Registration]: Getting latest change token`);
@@ -48,13 +50,8 @@ export default new bp.Integration({
       logger.forBot().info(`Unregistering webhook with ID: ${state.payload.webhookSubscriptionId}`);
 
       if (state.payload.webhookSubscriptionId.length) {
-        const spClient = new SharepointClient(
-          ctx.configuration,
-          new BotpressKB(client, ctx.configuration.kbId, logger)
-        );
-
+        const spClient = new SharepointClient(ctx.configuration);
         spClient.unregisterWebhook(state.payload.webhookSubscriptionId);
-
         logger.forBot().info(`Webhook unregistered successfully`);
       }
     } catch (e) {
@@ -77,7 +74,10 @@ export default new bp.Integration({
     // - The webhook is not public ( user responsible for securing the webhook, additional security measures can be added )
     // - The webhook is receiving notifications for the correct sharepoint site and list / library ( This is ensured as the subscription is created for a specific list / library )
 
-    const spClient = new SharepointClient(ctx.configuration, new BotpressKB(client, ctx.configuration.kbId, logger));
+    const spSync = new SharepointSync(
+      new SharepointClient(ctx.configuration),
+      new BotpressKB(client, ctx.configuration.kbId, logger)
+    );
 
     const {
       state: {
@@ -90,7 +90,7 @@ export default new bp.Integration({
     });
 
     // Process changes
-    const newChangeToken = await spClient.syncSharepointDocumentLibraryAndBotpressKB(changeToken);
+    const newChangeToken = await spSync.syncSharepointDocumentLibraryAndBotpressKB(changeToken);
 
     // Update the change token
     await client.setState({

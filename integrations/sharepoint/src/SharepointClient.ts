@@ -2,8 +2,7 @@ import axios from "axios";
 import * as msal from "@azure/msal-node";
 import * as sdk from "@botpress/sdk";
 import * as bp from ".botpress";
-import { formatPrivateKey, getFormatedCurrTime, handleAxiosError } from "./utils";
-import { BotpressKB } from "./BotpressKB";
+import { formatPrivateKey, handleAxiosError } from "./utils";
 import { ChangeItem, ChangeResponse, SharePointItem, SharePointItemsResponse } from "./SharepointTypes";
 import path from "path";
 
@@ -14,9 +13,8 @@ export class SharepointClient {
   private primaryDomain: string;
   private siteName: string;
   private documentLibraryName: string;
-  private botpressKB: BotpressKB;
 
-  constructor(integrationConfiguration: bp.configuration.Configuration, botpressKB: BotpressKB) {
+  constructor(integrationConfiguration: bp.configuration.Configuration) {
     this.cca = new msal.ConfidentialClientApplication({
       auth: {
         clientId: integrationConfiguration.clientId,
@@ -28,7 +26,6 @@ export class SharepointClient {
       },
     });
 
-    this.botpressKB = botpressKB;
     this.primaryDomain = integrationConfiguration.primaryDomain;
     this.siteName = integrationConfiguration.siteName;
     this.documentLibraryName = integrationConfiguration.documentLibraryName;
@@ -93,7 +90,7 @@ export class SharepointClient {
    * @param fileName - The name of the file to download
    * @returns - The file content as an ArrayBuffer
    */
-  private async downloadFile(fileName: string): Promise<ArrayBuffer> {
+  async downloadFile(fileName: string): Promise<ArrayBuffer> {
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/GetFolderByServerRelativeUrl('${this.documentLibraryName}')/Files('${fileName}')/$value`;
 
     const token = await this.fetchToken();
@@ -107,32 +104,6 @@ export class SharepointClient {
 
     const arrayBuffer = await response.arrayBuffer();
     return arrayBuffer;
-  }
-
-  /**
-   * Add all the items from the SharePoint list to the Botpress Knowledge Base
-   */
-  async loadAllDocumentsIntoBotpressKB(): Promise<void> {
-    // Delete All existing files
-    await this.botpressKB.deleteAllFiles();
-
-    const documentLibraryListItems = await this.listItems();
-
-    const processDocuments = documentLibraryListItems.map(async (document) => {
-      const documentName = await this.getFileName(document.Id);
-      if (!documentName) {
-        this.log(`File does not exist for item: ${document.Id}`);
-        return;
-      }
-      if (!SUPPORTED_FILE_EXTENSIONS.includes(path.extname(documentName))) {
-        this.log(`File extension not supported for file: ${documentName}`);
-        return;
-      }
-      const content = await this.downloadFile(documentName);
-      await this.botpressKB.addFile(document.ID.toString(), documentName, content);
-    });
-
-    await Promise.all(processDocuments);
   }
 
   /**
@@ -194,7 +165,7 @@ export class SharepointClient {
    * Get the list of documents from the configured document library.
    * @returns - The list of documents.
    */
-  private async listItems(): Promise<SharePointItem[]> {
+  async listItems(): Promise<SharePointItem[]> {
     const token = await this.fetchToken();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/items`;
     const res = await axios.get<SharePointItemsResponse>(url, {
@@ -211,7 +182,7 @@ export class SharepointClient {
    * @param listItemIndex - The item index to get the file name for
    * @returns - The file name or null if the file does not exist
    */
-  private async getFileName(listItemIndex: number): Promise<string | null> {
+  async getFileName(listItemIndex: number): Promise<string | null> {
     // sample url -https://botpressio836.sharepoint.com/sites/DemoStandardTeamPage/_api/web/lists/getbytitle('NewDL')/items(3)/File
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/items(${listItemIndex})/File`;
     const token = await this.fetchToken();
@@ -238,7 +209,7 @@ export class SharepointClient {
    * A method to get changes from a SharePoint list
    * @returns - The list of changes
    */
-  private async getChanges(changeToken: string | null): Promise<ChangeItem[]> {
+  async getChanges(changeToken: string | null): Promise<ChangeItem[]> {
     const token = await this.fetchToken();
     const url = `https://${this.primaryDomain}.sharepoint.com/sites/${this.siteName}/_api/web/lists/getbytitle('${this.documentLibraryName}')/GetChanges`;
 
@@ -283,90 +254,5 @@ export class SharepointClient {
     }
 
     return res.data.d.results;
-  }
-
-  private log(message: string): void {
-    console.log(`[${getFormatedCurrTime()} - SP Client] ${message}`);
-  }
-
-  /**
-   * Processes changes from a SharePoint list
-   */
-  async syncSharepointDocumentLibraryAndBotpressKB(changeToken: string): Promise<string> {
-    const changes = await this.getChanges(changeToken);
-
-    if (changes.length === 0) {
-      console.log("No changes to process");
-      return changeToken;
-    }
-
-    const newChangeToken = changes.at(-1)!.ChangeToken.StringValue;
-
-    // Process changes in series
-    for (const change of changes) {
-      switch (change.ChangeType) {
-        // ADD
-        case 1: {
-          this.log(`Adding item: ${change.ItemId}`);
-          const fileName = await this.getFileName(change.ItemId);
-          if (!fileName) {
-            this.log(`File does not exist for item: ${change.ItemId}`);
-            break;
-          }
-          this.log(`File name: ${fileName}`);
-          const extension = path.extname(fileName);
-          if (!SUPPORTED_FILE_EXTENSIONS.includes(extension)) {
-            this.log(`File extension not supported for file: ${fileName}`);
-            break;
-          }
-          const content = await this.downloadFile(fileName);
-          await this.botpressKB.addFile(change.ItemId.toString(), fileName, content);
-          break;
-        }
-        // Update
-        case 2: {
-          this.log(`Updating item: ${change.ItemId}`);
-          const updatedFileName = await this.getFileName(change.ItemId);
-          if (!updatedFileName) {
-            this.log(`File does not exist for item: ${change.ItemId}`);
-            break;
-          }
-          this.log(`Updated file name: ${updatedFileName}`);
-          const updatedContent = await this.downloadFile(updatedFileName);
-          // Delete the existing file and add the updated file
-          await this.botpressKB.deleteFile(change.ItemId.toString());
-          await this.botpressKB.addFile(change.ItemId.toString(), updatedFileName, updatedContent);
-          break;
-        }
-        // Delete
-        case 3: {
-          this.log(`Deleting item: ${change.ItemId}`);
-          await this.botpressKB.deleteFile(change.ItemId.toString());
-          break;
-        }
-        // Rename
-        case 4: {
-          this.log(`Renaming item: ${change.ItemId}`);
-          const renamedFileName = await this.getFileName(change.ItemId);
-          if (!renamedFileName) {
-            this.log(`File does not exist for item: ${change.ItemId}`);
-            break;
-          }
-          this.log(`Renamed file name: ${renamedFileName}`);
-          const content = await this.downloadFile(renamedFileName);
-          // Delete the existing file and add the updated file
-          await this.botpressKB.deleteFile(change.ItemId.toString());
-          await this.botpressKB.addFile(change.ItemId.toString(), renamedFileName, content);
-          break;
-        }
-        default: {
-          this.log(`Change type not supported (yet): ${change.ChangeType}`);
-          break;
-        }
-      }
-      this.log(`Processed change type ${change.ChangeType} for item: ${change.ItemId}`);
-    }
-
-    return newChangeToken;
   }
 }
