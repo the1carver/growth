@@ -1,0 +1,22 @@
+{
+  "name": "bp-integration-runner",
+  "version": "1.0.0",
+  "private": true,
+  "bin": {
+    "bp-integration-runner": "./run.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@botpress/cli": "^1.7.2",
+    "axios": "^1.7.8",
+    "boxen": "^8.0.1",
+    "dotenv": "^16.4.5",
+    "ngrok": "^5.0.0-beta.2",
+    "portfinder": "^1.0.32"
+  }
+}
