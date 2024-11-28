@@ -1,5 +1,5 @@
 {
-  "name": "bp-integration-runner",
+  "name": "@bp-growth/bp-integration-runner",
   "version": "1.0.0",
   "private": true,
   "bin": {
