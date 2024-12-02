@@ -1,8 +1,8 @@
-import * as bp from ".botpress";
-import { CloseConversationMessagingTrigger } from "../triggers";
-import { Conversation } from "@botpress/client";
-import { getSalesforceClient } from "../client";
-import { SFMessagingConfig } from "../definitions/schemas";
+import { Conversation } from '@botpress/client'
+import { getSalesforceClient } from '../client'
+import { SFMessagingConfig } from '../definitions/schemas'
+import { CloseConversationMessagingTrigger } from '../triggers'
+import * as bp from '.botpress'
 
 export const executeOnConversationClose = async ({
   messagingTrigger,
@@ -11,23 +11,23 @@ export const executeOnConversationClose = async ({
   client,
   logger,
 }: {
-  messagingTrigger: CloseConversationMessagingTrigger;
-  conversation: Conversation;
-  ctx: bp.Context;
-  client: bp.Client;
-  logger: bp.Logger;
+  messagingTrigger: CloseConversationMessagingTrigger
+  conversation: Conversation
+  ctx: bp.Context
+  client: bp.Client
+  logger: bp.Logger
 }) => {
   if (conversation.tags.id !== messagingTrigger.data.conversationId) {
     logger
       .forBot()
       .warn(
-        "Received conversation close for an conversation not created by the integration"
-      );
-    return;
+        'Received conversation close for an conversation not created by the integration'
+      )
+    return
   }
 
-  await closeConversation({ conversation, ctx, client, logger });
-};
+  await closeConversation({ conversation, ctx, client, logger })
+}
 
 export const closeConversation = async ({
   conversation,
@@ -36,27 +36,27 @@ export const closeConversation = async ({
   logger,
   force,
 }: {
-  conversation: Conversation;
-  ctx: bp.Context;
-  client: bp.Client;
-  logger: bp.Logger;
-  force?: boolean;
+  conversation: Conversation
+  ctx: bp.Context
+  client: bp.Client
+  logger: bp.Logger
+  force?: boolean
 }) => {
   if (!force && isConversationClosed(conversation)) {
     console.warn(
-      "Skipping because the conversation was already closed at the Integration",
+      'Skipping because the conversation was already closed at the Integration',
       { conversation }
-    );
+    )
     // Skipping because the conversation was already closed at the Integration
-    return;
+    return
   }
 
   await client.createEvent({
-    type: "hitlStopped",
+    type: 'hitlStopped',
     payload: {
       conversationId: conversation.id,
     },
-  });
+  })
 
   await client.updateConversation({
     id: conversation.id,
@@ -65,17 +65,17 @@ export const closeConversation = async ({
       id: conversation.tags.id,
       closedAt: new Date().toISOString(),
     },
-  });
+  })
 
   const {
     state: {
       payload: { accessToken },
     },
   } = await client.getState({
-    type: "conversation",
+    type: 'conversation',
     id: conversation.id,
-    name: "messaging",
-  });
+    name: 'messaging',
+  })
 
   const salesforceClient = getSalesforceClient(
     logger,
@@ -85,11 +85,11 @@ export const closeConversation = async ({
       sseKey: conversation.tags.transportKey,
       conversationId: conversation.tags.id,
     }
-  );
+  )
 
-  await salesforceClient.stopSSE(conversation.tags.transportKey);
-};
+  await salesforceClient.stopSSE(conversation.tags.transportKey)
+}
 
 export const isConversationClosed = (conversation: Conversation) => {
-  return conversation.tags.closedAt?.length && true;
-};
+  return conversation.tags.closedAt?.length && true
+}

@@ -1,17 +1,17 @@
-import type { IntegrationDefinitionProps } from "@botpress/sdk";
-import { MessagingSessionSchema, SFMessagingConfigSchema } from "./schemas";
+import type { IntegrationDefinitionProps } from '@botpress/sdk'
+import { MessagingSessionSchema, SFMessagingConfigSchema } from './schemas'
 
-export { actions } from "./actions";
-export { events } from "./events";
-export { channels } from "./channels";
+export { actions } from './actions'
+export { events } from './events'
+export { channels } from './channels'
 
 export const configuration = {
   schema: SFMessagingConfigSchema,
-} satisfies IntegrationDefinitionProps["configuration"];
+} satisfies IntegrationDefinitionProps['configuration']
 
 export const states = {
   messaging: {
-    type: "conversation",
+    type: 'conversation',
     schema: MessagingSessionSchema,
   },
-} satisfies IntegrationDefinitionProps["states"];
+} satisfies IntegrationDefinitionProps['states']

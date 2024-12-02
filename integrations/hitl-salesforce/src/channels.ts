@@ -1,9 +1,8 @@
-import * as bp from "../.botpress";
-import { RuntimeError } from "@botpress/client";
-import { getSalesforceClient } from "./client";
-import { SFMessagingConfig } from "./definitions/schemas";
-import axios, { AxiosError } from "axios";
-import { closeConversation } from "./events/conversation-close";
+import { AxiosError } from 'axios'
+import * as bp from '../.botpress'
+import { getSalesforceClient } from './client'
+import { SFMessagingConfig } from './definitions/schemas'
+import { closeConversation } from './events/conversation-close'
 
 export const channels = {
   hitl: {
@@ -21,17 +20,17 @@ export const channels = {
             payload: { accessToken },
           },
         } = await client.getState({
-          type: "conversation",
+          type: 'conversation',
           id: conversation.id,
-          name: "messaging",
-        });
+          name: 'messaging',
+        })
 
-        console.log("Sending HITL message with: ", {
+        console.log('Sending HITL message with: ', {
           conversation,
           ctx,
           props,
           accessToken,
-        });
+        })
 
         const salesforceClient = getSalesforceClient(
           logger,
@@ -41,13 +40,13 @@ export const channels = {
             sseKey: conversation.tags.transportKey,
             conversationId: conversation.tags.id,
           }
-        );
+        )
 
         try {
-          await salesforceClient.sendMessage(payload.text);
+          await salesforceClient.sendMessage(payload.text)
         } catch (err: any) {
-          console.log(err);
-          logger.forBot().error("Failed to send message: " + err.message);
+          console.log(err)
+          logger.forBot().error('Failed to send message: ' + err.message)
 
           if ((err as AxiosError)?.response?.status === 403) {
             // Session is no longer valid
@@ -67,17 +66,17 @@ export const channels = {
                 client,
                 logger,
                 force: true,
-              });
+              })
             } catch (e) {
               logger
                 .forBot()
-                .error("Failed to finish invalid session: " + err.message);
+                .error('Failed to finish invalid session: ' + err.message)
             }
           }
         }
       },
     },
   },
-} satisfies bp.IntegrationProps["channels"];
+} satisfies bp.IntegrationProps['channels']
 
-export default channels;
+export default channels

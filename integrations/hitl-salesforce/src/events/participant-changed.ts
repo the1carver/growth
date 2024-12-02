@@ -1,10 +1,10 @@
-import * as bp from ".botpress";
+import { Conversation } from '@botpress/client'
 import {
   ParticipantChangedDataPayload,
   ParticipantChangedMessagingTrigger,
-} from "../triggers";
-import { Conversation } from "@botpress/client";
-import { closeConversation } from "./conversation-close";
+} from '../triggers'
+import { closeConversation } from './conversation-close'
+import * as bp from '.botpress'
 
 export const executeOnParticipantChanged = async ({
   messagingTrigger,
@@ -13,47 +13,47 @@ export const executeOnParticipantChanged = async ({
   client,
   logger,
 }: {
-  messagingTrigger: ParticipantChangedMessagingTrigger;
-  conversation: Conversation;
-  ctx: bp.Context;
-  client: bp.Client;
-  logger: bp.Logger;
+  messagingTrigger: ParticipantChangedMessagingTrigger
+  conversation: Conversation
+  ctx: bp.Context
+  client: bp.Client
+  logger: bp.Logger
 }) => {
-  let entryPayload: ParticipantChangedDataPayload;
+  let entryPayload: ParticipantChangedDataPayload
 
   try {
     entryPayload = JSON.parse(
       messagingTrigger.data.conversationEntry.entryPayload
-    ) as ParticipantChangedDataPayload;
+    ) as ParticipantChangedDataPayload
   } catch (e) {
-    console.log("Could not parse entry payload", e);
-    return;
+    console.log('Could not parse entry payload', e)
+    return
   }
 
   for (const entry of entryPayload.entries) {
     const {
       displayName,
       participant: { role, subject },
-    } = entry;
+    } = entry
 
-    if (role !== "Agent") {
-      return;
+    if (role !== 'Agent') {
+      return
     }
 
     switch (entry.operation) {
-      case "remove":
-        console.log("Agent removed, closing conversation");
+      case 'remove':
+        console.log('Agent removed, closing conversation')
 
-        await closeConversation({ conversation, ctx, client, logger });
-        return;
-      case "add":
-        console.log("Agent assigned");
+        await closeConversation({ conversation, ctx, client, logger })
+        return
+      case 'add':
+        console.log('Agent assigned')
         const { user } = await client.getOrCreateUser({
           name: displayName,
           tags: {
             id: subject,
           },
-        });
+        })
 
         if (!user.name?.length) {
           await client.updateUser({
@@ -62,18 +62,18 @@ export const executeOnParticipantChanged = async ({
             tags: {
               id: subject,
             },
-          });
+          })
         }
 
-        console.log({ agentUser: user });
+        console.log({ agentUser: user })
 
         await client.createEvent({
-          type: "hitlAssigned",
+          type: 'hitlAssigned',
           payload: {
             conversationId: conversation.id,
             userId: user.id,
           },
-        });
+        })
     }
   }
-};
+}

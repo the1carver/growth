@@ -1,13 +1,27 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "lib": ["es2022"],
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es2017",
     "baseUrl": ".",
     "outDir": "dist",
-    "checkJs": false
+    "checkJs": false,
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": false,
+    "resolveJsonModule": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUnusedLocals": false,
+    "noImplicitOverride": false,
   },
   "include": [".botpress/**/*", "src/**/*"]
 }
