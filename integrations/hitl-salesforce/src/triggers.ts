@@ -75,25 +75,6 @@ type EventData = {
 
 // These payloads will be on string format initially
 
-export type RoutingResultPayload = {
-  entryType: 'RoutingResult'
-  id: string
-  recordId: string
-  errorMessages: string[]
-  pendingServiceRoutingId: string
-  routingType: string
-  estimatedWaitTime: {
-    estimatedWaitTimeInSeconds: number
-    isEWTRequested: boolean
-  }
-  failureReason: string
-  failureType: string
-  routingConfigurationDetails: {
-    routingConfigurationType: string
-    queueId: string
-  }
-}
-
 export type MessageDataPayload = {
   entryType: 'Message'
   id: string

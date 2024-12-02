@@ -5,8 +5,6 @@ import {
 import { INTEGRATION_NAME } from "./src/const";
 import hitl from "./bp_modules/hitl";
 import {
-  actions,
-  events,
   configuration,
   channels,
   states,
@@ -15,6 +13,7 @@ import {
 export const user = {
   tags: {
     id: { title: "Salesforce Subject id" },
+    email: { title: "Email" },
     conversationId: { title: "Salesforce Conversation id" },
   },
 } satisfies IntegrationDefinitionProps["user"];
@@ -31,8 +30,6 @@ export default new IntegrationDefinition({
   states,
   channels,
   user,
-  actions,
-  events,
   secrets: {
     TT_URL: {
       description: "Url from the Transport Translator service",

@@ -5,4 +5,3 @@ export type Conversation = Awaited<
   ReturnType<Client['getConversation']>
 >['conversation']
 export type Message = Awaited<ReturnType<Client['getMessage']>>['message']
-export type User = Awaited<ReturnType<Client['getUser']>>['user']

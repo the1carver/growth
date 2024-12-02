@@ -12,8 +12,7 @@ export const channels = {
         ctx,
         conversation,
         logger,
-        payload,
-        ...props
+        payload
       }: bp.AnyMessageProps) => {
         const {
           state: {
@@ -23,13 +22,6 @@ export const channels = {
           type: 'conversation',
           id: conversation.id,
           name: 'messaging',
-        })
-
-        console.log('Sending HITL message with: ', {
-          conversation,
-          ctx,
-          props,
-          accessToken,
         })
 
         const salesforceClient = getSalesforceClient(
@@ -45,21 +37,12 @@ export const channels = {
         try {
           await salesforceClient.sendMessage(payload.text)
         } catch (err: any) {
-          console.log(err)
           logger.forBot().error('Failed to send message: ' + err.message)
 
           if ((err as AxiosError)?.response?.status === 403) {
             // Session is no longer valid
             try {
-              /* TODO: Fix, the method below also doesn't work, hitlStopped is very unstable today
-              // We call our webhook simulating a TT call to end the HITL session
-              // Creating the hitlStopped event here will send the end HITL session message but the user will stay on the loop (don't know why ¯\_(ツ)_/¯)
-              void axios.post(`${process.env.BP_WEBHOOK_URL}/${ctx.webhookId}`, {
-                type: 'TRANSPORT_END',
-                transport: {
-                  key: conversation.tags.transportKey,
-                }
-              })*/
+              // TODO: Fix in future, triggering hitlStopped on messages is very unstable today, but this is an edge case
               await closeConversation({
                 conversation,
                 ctx,

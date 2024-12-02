@@ -23,20 +23,13 @@ export const handler: IntegrationProps['handler'] = async ({
 
   const trigger = JSON.parse(req.body) as TriggerPayload
 
-  if (typeof trigger.payload !== 'string' || trigger.payload.length) {
-    console.log('Got Data on handler:', JSON.stringify(req.body))
-  }
+  logger.forBot().debug('Got Data on handler:', JSON.stringify(req.body))
 
   if (
-    trigger.type == 'TRANSPORT_START' ||
-    (trigger.type == 'DATA' &&
-      (!trigger.payload ||
-        (typeof trigger.payload == 'string' && !trigger.payload.length)))
+    trigger.type === 'TRANSPORT_START' ||
+    trigger.type === 'DATA' && !trigger.payload
   ) {
-    if (typeof trigger.payload == 'string' && !trigger.payload.length) {
-      return
-    }
-    console.log(
+    logger.forBot().debug(
       `Ignoring sf event of type: ${
         trigger.type
       } with definition ${JSON.stringify(trigger, null, 2)}`
@@ -66,7 +59,6 @@ export const handler: IntegrationProps['handler'] = async ({
           return /* Ignore non json data */
         }
 
-        console.log('Got conversation for data: ', { conversation })
         switch (messagingTrigger.event) {
           case 'CONVERSATION_MESSAGE':
             await executeOnConversationMessage({
@@ -95,33 +87,28 @@ export const handler: IntegrationProps['handler'] = async ({
             })
             break
           default:
-            console.log('Got unhandled event: ' + trigger.payload.event)
+            logger.forBot().warn('Got unhandled event: ' + trigger.payload.event)
         }
         return
       case 'ERROR':
-        // If you start the polling session with debug enabled
+        // If you start the sse session with debug enabled
         logger
           .forBot()
           .debug(
             'Got a debug error from the transport session: ' +
               JSON.stringify(
-                { trigger, response: trigger.payload?.response },
+                { trigger },
                 null,
                 2
               )
           )
         return
       case 'TRANSPORT_END':
-        console.log('On Transport End')
         await closeConversation({ conversation, ctx, client, logger })
         return
       case 'TRANSPORT_RESTORED':
-        console.log('On Transport Restored')
         if (isConversationClosed(conversation)) {
-          console.log(
-            'Restored transport from a conversation that is already closed, ending transport'
-          )
-
+          // Restored transport from a conversation that is already closed, ending transport
           const {
             state: {
               payload: { accessToken },
@@ -142,7 +129,7 @@ export const handler: IntegrationProps['handler'] = async ({
             }
           )
 
-          await salesforceClient.stopSSE(conversation.tags.transportKey)
+          await salesforceClient.stopSSE(conversation.tags.transportKey as string)
         }
         return
 

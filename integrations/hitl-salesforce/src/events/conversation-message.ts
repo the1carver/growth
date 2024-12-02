@@ -18,14 +18,10 @@ export const executeOnConversationMessage = async ({
     senderDisplayName,
   } = messagingTrigger.data.conversationEntry
 
-  if (senderRole == 'EndUser') {
+  // Only process Agent or System messages
+  if (senderRole === 'EndUser') {
     return
   }
-
-  console.log('Got onConversationMessage Trigger messagingTrigger', {
-    senderRole: messagingTrigger.data.conversationEntry.sender.role,
-    messagingTrigger: JSON.stringify(messagingTrigger, null, 2),
-  })
 
   const { user } = await client.getOrCreateUser({
     name: senderDisplayName,
@@ -51,31 +47,23 @@ export const executeOnConversationMessage = async ({
       messagingTrigger.data.conversationEntry.entryPayload
     ) as MessageDataPayload
   } catch (e) {
-    console.log('Could not parse entry payload', e)
+    logger.forBot().error('Could not parse entry payload', e)
     return
   }
 
-  console.log('Got entry payload: ', { entryPayload })
-
   if (entryPayload.abstractMessage.messageType !== 'StaticContentMessage') {
-    console.log(
-      `Salesforce Messaging HITL does not support messages of type '${entryPayload.abstractMessage.messageType}'`
-    )
     logger
       .forBot()
-      .error(
+        .warn(
         `Salesforce Messaging HITL does not support messages of type '${entryPayload.abstractMessage.messageType}'`
       )
     return
   }
 
   if (entryPayload.abstractMessage.staticContent.formatType !== 'Text') {
-    console.log(
-      `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`
-    )
     logger
       .forBot()
-      .error(
+        .warn(
         `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`
       )
     return
@@ -87,7 +75,7 @@ export const executeOnConversationMessage = async ({
     userId: user?.id as string,
     conversationId: conversation.id,
     payload: {
-      text: `${(senderRole == 'Agent' && `${senderDisplayName}: `) || ''}${
+      text: `${(senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
         entryPayload.abstractMessage.staticContent.text
       }`,
     },

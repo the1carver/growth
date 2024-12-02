@@ -3,6 +3,7 @@ import { v4 } from 'uuid'
 import { getSalesforceClient } from '../client'
 import { SFMessagingConfig } from '../definitions/schemas'
 import * as bp from '.botpress'
+import {closeConversation} from "../events/conversation-close";
 
 export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({
   ctx,
@@ -14,13 +15,10 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({
     const { userId } = input
 
     const { user } = await client.getUser({ id: userId })
-
-    console.log('Got User for startHitl', { user })
-
+    
     const salesforceClient = getSalesforceClient(
       logger,
-      { ...(ctx.configuration as SFMessagingConfig) },
-      { accessToken: user.tags.token }
+      { ...(ctx.configuration as SFMessagingConfig) }
     )
 
     const unauthenticatedData =
@@ -33,13 +31,9 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({
 
     const session = salesforceClient.getCurrentSession()
 
-    console.log('got session', { session })
-
     if (!session) {
       throw new RuntimeError('Failed to create Session')
     }
-
-    console.log()
 
     const newSalesforceConversationId = v4()
 
@@ -71,14 +65,14 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({
 
     await salesforceClient.createConversation(newSalesforceConversationId, {
       firstName: (splitName?.length && splitName[0]) || 'Anon',
-      _lastName: (splitName?.length > 1 && splitName[splitName.length]) || '',
+      _lastName: (!splitName?.length || splitName[splitName.length]) || '',
       _email: user.tags?.email || 'anon@email.com',
     })
 
     return { conversationId: conversation.id }
-  } catch (error) {
-    console.log('Failed to start HITL', error)
-    throw new RuntimeError(error.message)
+  } catch (error: any) {
+    logger.forBot().error('Failed to start HITL Session: ' + error.message)
+    throw new RuntimeError('Failed to start HITL Session: ' + error.message)
   }
 }
 
@@ -96,42 +90,26 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({
     throw new RuntimeError("Conversation doesn't exist")
   }
 
-  const salesforceClient = getSalesforceClient(
-    logger,
-    { ...(ctx.configuration as SFMessagingConfig) },
-    input.conversationId
-  )
-  await salesforceClient.closeConversation(input.reason)
+  await closeConversation({conversation, ctx, client, logger, force: true})
 
   return {}
 }
 
-// create a user in both platforms
 export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
   client,
   input,
-  ctx,
-  logger,
 }) => {
   try {
-    const salesforceClient = getSalesforceClient(logger, {
-      ...(ctx.configuration as SFMessagingConfig),
-    })
 
     const { name, email, pictureUrl } = input
-
-    if (!email) {
-      logger.forBot().error('Email necessary for HITL')
-      throw new RuntimeError('Email necessary for HITL')
-    }
 
     const { user: botpressUser } = await client.getOrCreateUser({
       name,
       pictureUrl,
-      tags: {},
+      tags: {
+        email
+      },
     })
-
-    console.log('Created Botpress User', botpressUser)
 
     return {
       userId: botpressUser.id, // always return the newly created botpress user id

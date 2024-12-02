@@ -8,35 +8,34 @@ import {
   SFMessagingConfigSchema,
   CreateTTSessionResponse,
 } from './definitions/schemas'
-import { EndConversationReason } from './events/conversation-ended'
 import { secrets, Logger } from '.botpress'
 
 class MessagingApi {
-  private session?: LiveAgentSession
-  private client: Axios
+  private _session?: LiveAgentSession
+  private _client: Axios
   private apiBaseUrl: string
 
   constructor(
-    private logger: Logger,
-    private config: SFMessagingConfig,
-    session?: LiveAgentSession
+    private _logger: Logger,
+    private _config: SFMessagingConfig,
+    _session?: LiveAgentSession
   ) {
-    this.apiBaseUrl = config.endpoint + '/iamessage/api/v2'
+    this.apiBaseUrl = _config.endpoint + '/iamessage/api/v2'
 
-    this.client = axios.create({
+    this._client = axios.create({
       baseURL: this.apiBaseUrl,
     })
 
-    this.session = session
+    this._session = _session
 
     // Fill default values
-    this.config = SFMessagingConfigSchema.parse(config)
+    this._config = SFMessagingConfigSchema.parse(_config)
 
-    this.client.interceptors.request.use((axionsConfig) => {
+    this._client.interceptors.request.use((axionsConfig) => {
       // @ts-ignore
       axionsConfig.headers = {
         ...axionsConfig.headers,
-        ...this.getMesssagingConfig().headers,
+        ...this.getMessagingConfig().headers,
       }
       return axionsConfig
     })
@@ -47,18 +46,15 @@ class MessagingApi {
     attributes: any
   ): Promise<void> {
     try {
-      const { data } = await this.client.post('/conversation', {
+      const { data } = await this._client.post('/conversation', {
         conversationId,
         routingAttributes: attributes,
-        esDeveloperName: this.config.DeveloperName,
+        esDeveloperName: this._config.DeveloperName,
       })
 
-      console.log('Created conversation')
-
       return data
-    } catch (e) {
-      console.log(e)
-      this.logger
+    } catch (e: any) {
+      this._logger
         .forBot()
         .error('Failed to create conversation on Salesforce: ' + e.message)
       throw new RuntimeError(
@@ -69,11 +65,11 @@ class MessagingApi {
 
   public async createTokenForUnauthenticatedUser(): Promise<CreateTokenResponse> {
     try {
-      const { data } = await this.client.post<CreateTokenResponse>(
+      const { data } = await this._client.post<CreateTokenResponse>(
         '/authorization/unauthenticated/access-token',
         {
-          orgId: this.config.organizationId,
-          esDeveloperName: this.config.DeveloperName,
+          orgId: this._config.organizationId,
+          esDeveloperName: this._config.DeveloperName,
           capabilitiesVersion: '1',
           platform: 'Web',
           context: {
@@ -83,13 +79,10 @@ class MessagingApi {
         }
       )
 
-      console.log('Created token', data)
-
-      this.session = { ...this.session, accessToken: data.accessToken }
+      this._session = { ...this._session, accessToken: data.accessToken }
       return data
     } catch (e) {
-      console.log(e)
-      this.logger
+      this._logger
         .forBot()
         .error('Failed to create conversation on Salesforce: ' + e.message)
       throw new RuntimeError(
@@ -99,16 +92,16 @@ class MessagingApi {
   }
 
   public getCurrentSession() {
-    return this.session
+    return this._session
   }
 
-  getMesssagingConfig() {
+  private getMessagingConfig() {
     return {
       headers: {
-        ...(this.session?.accessToken && {
-          Authorization: 'Bearer ' + this.session?.accessToken,
+        ...(this._session?.accessToken && {
+          Authorization: 'Bearer ' + this._session?.accessToken,
         }),
-        'X-Org-Id': this.config.organizationId,
+        'X-Org-Id': this._config.organizationId,
       },
     }
   }
@@ -118,28 +111,17 @@ class MessagingApi {
     webhook: { url: string }
   }): Promise<CreateTTSessionResponse | undefined> {
     try {
-      if (!this.session) {
+      if (!this._session) {
         throw new RuntimeError(
           "Tried to start a sse Session but doesn't have a Messaging Session"
         )
       }
 
-      console.log('Starting SSE Session with data: ', {
-        sse: {
-          headers: this.getMesssagingConfig().headers,
-        },
-        target: {
-          debug: true,
-          url: `${this.config.endpoint}/eventrouter/v1/sse`,
-        },
-        webhook: { url: opts?.webhook.url },
-      })
-
       const { data } = await axios.post<CreateTTSessionResponse>(
         `${secrets.TT_URL}/api/v1/sse`,
         {
           sse: {
-            headers: this.getMesssagingConfig().headers,
+            headers: this.getMessagingConfig().headers,
             ignore: {
               onEvent: [
                 'ping',
@@ -155,7 +137,7 @@ class MessagingApi {
           },
           target: {
             debug: true,
-            url: `${this.config.endpoint}/eventrouter/v1/sse`,
+            url: `${this._config.endpoint}/eventrouter/v1/sse`,
           },
           webhook: { url: opts?.webhook.url },
         },
@@ -166,12 +148,10 @@ class MessagingApi {
         }
       )
 
-      console.log('Got SSE Key')
-
-      this.session.sseKey = data.data.key
+      this._session.sseKey = data.data.key
       return data
     } catch (e) {
-      this.logger
+      this._logger
         .forBot()
         .error('Failed to start SSE Session with TT: ' + e.message)
       throw new RuntimeError(
@@ -182,46 +162,28 @@ class MessagingApi {
 
   public async stopSSE(transportKey: string) {
     try {
-      const response = await axios.delete(`${secrets.TT_URL}/api/v1/sse`, {
+      await axios.delete(`${secrets.TT_URL}/api/v1/sse`, {
         headers: {
           secret: secrets.TT_SK,
           'transport-key': transportKey,
         },
       })
-
-      console.log({ stopSSEResponse: response })
-    } catch (e) {
-      this.logger
+    } catch (e: any) {
+      this._logger
         .forBot()
         .error('Failed to stop SSE Session with TT: ' + e.message)
     }
   }
 
   public async sendMessage(message: string) {
-    if (!this.session) {
+    if (!this._session) {
       throw new RuntimeError(
         'Tried to send message to a session that is not initilized yet'
       )
     }
 
-    console.log('Sending message with data: ', {
-      url: `/conversation/${this.session.conversationId}/message`,
-      data: {
-        message: {
-          id: 'Generating',
-          messageType: 'StaticContentMessage',
-          staticContent: {
-            formatType: 'Text',
-            text: message,
-          },
-        },
-        esDeveloperName: this.config.DeveloperName,
-        isNewMessagingSession: false,
-      },
-    })
-
-    await this.client.post(
-      `/conversation/${this.session.conversationId}/message`,
+    await this._client.post(
+      `/conversation/${this._session.conversationId}/message`,
       {
         message: {
           id: v4(),
@@ -231,29 +193,25 @@ class MessagingApi {
             text: message,
           },
         },
-        esDeveloperName: this.config.DeveloperName,
+        esDeveloperName: this._config.DeveloperName,
         isNewMessagingSession: false,
       }
     )
   }
 
-  public async closeConversation(reason: EndConversationReason) {
-    if (!this.session) {
+  public async closeConversation() {
+    if (!this._session) {
       throw new RuntimeError(
-        'Tried to end a conversation that is not initilized yet'
+        'Tried to end a conversation that is not initialized yet'
       )
     }
 
-    await this.client.post('/conversation/{conversationId}', {
-      ChatEndReason: {
-        reason,
-      },
-    })
+    await this._client.delete(`/conversation/${this._session.conversationId}?esDeveloperName=${this._config.DeveloperName}`)
   }
 }
 
 export const getSalesforceClient = (
   logger: Logger,
   config: SFMessagingConfig,
-  session?: LiveAgentSession
+  session: LiveAgentSession = {}
 ) => new MessagingApi(logger, config, session)

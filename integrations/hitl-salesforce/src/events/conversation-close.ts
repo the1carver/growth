@@ -87,7 +87,12 @@ export const closeConversation = async ({
     }
   )
 
-  await salesforceClient.stopSSE(conversation.tags.transportKey)
+  // Conversation could already be closed on Salesforce, ignore errors
+  try {
+    await salesforceClient.closeConversation()
+  } catch (e) {}
+
+  await salesforceClient.stopSSE(conversation.tags.transportKey as string)
 }
 
 export const isConversationClosed = (conversation: Conversation) => {

@@ -26,7 +26,7 @@ export const executeOnParticipantChanged = async ({
       messagingTrigger.data.conversationEntry.entryPayload
     ) as ParticipantChangedDataPayload
   } catch (e) {
-    console.log('Could not parse entry payload', e)
+    logger.forBot().error('Could not parse entry payload', e)
     return
   }
 
@@ -42,12 +42,9 @@ export const executeOnParticipantChanged = async ({
 
     switch (entry.operation) {
       case 'remove':
-        console.log('Agent removed, closing conversation')
-
         await closeConversation({ conversation, ctx, client, logger })
         return
       case 'add':
-        console.log('Agent assigned')
         const { user } = await client.getOrCreateUser({
           name: displayName,
           tags: {
@@ -65,8 +62,6 @@ export const executeOnParticipantChanged = async ({
           })
         }
 
-        console.log({ agentUser: user })
-
         await client.createEvent({
           type: 'hitlAssigned',
           payload: {
@@ -74,6 +69,8 @@ export const executeOnParticipantChanged = async ({
             userId: user.id,
           },
         })
+        return
+      default: break
     }
   }
 }
