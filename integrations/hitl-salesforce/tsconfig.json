@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["es2022"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es2017",
+    "baseUrl": ".",
+    "outDir": "dist",
+    "checkJs": false
+  },
+  "include": [".botpress/**/*", "src/**/*"]
+}
