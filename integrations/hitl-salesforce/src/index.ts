@@ -1,7 +1,7 @@
-import actions from './actions'
-import channels from './channels'
-import { handler } from './handler'
-import * as bp from '.botpress'
+import actions from "./actions";
+import channels from "./channels";
+import { handler } from "./handler";
+import * as bp from ".botpress";
 
 export default new bp.Integration({
   register: async ({}) => {},
@@ -9,4 +9,4 @@ export default new bp.Integration({
   actions,
   channels,
   handler,
-})
+});

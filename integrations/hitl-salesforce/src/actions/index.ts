@@ -1,8 +1,8 @@
-import { IntegrationProps } from '.botpress'
-import { startHitl, stopHitl, createUser} from './hitl'
+import { IntegrationProps } from ".botpress";
+import { startHitl, stopHitl, createUser } from "./hitl";
 
 export default {
   startHitl,
   stopHitl,
-  createUser
-} satisfies IntegrationProps['actions']
+  createUser,
+} satisfies IntegrationProps["actions"];

@@ -7,6 +7,6 @@ import * as output from "./output";
 export * as output from "./output";
 
 export const startHitl = {
-  "input": input.input,
-  "output": output.output,
-}
+  input: input.input,
+  output: output.output,
+};

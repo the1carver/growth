@@ -1,46 +1,52 @@
 export type TriggerPayload = {
-  type: string
+  type: string;
   transport: {
-    key: string
-  }
-  payload: RoutingResultMessagingTrigger | MessageMessagingTrigger | CloseConversationMessagingTrigger | ParticipantChangedMessagingTrigger | UndefinedMessagingTrigger | OtherMessagingTrigger
-}
+    key: string;
+  };
+  payload:
+    | RoutingResultMessagingTrigger
+    | MessageMessagingTrigger
+    | CloseConversationMessagingTrigger
+    | ParticipantChangedMessagingTrigger
+    | UndefinedMessagingTrigger
+    | OtherMessagingTrigger;
+};
 
 // https://developer.salesforce.com/docs/service/messaging-api/references/about/server-sent-events-structure.html
 
 export type RawMessagingTrigger = {
-  raw: String
-}
+  raw: String;
+};
 
 export type UndefinedMessagingTrigger = {
-  event: undefined
-  data: any
-} & RawMessagingTrigger
+  event: undefined;
+  data: any;
+} & RawMessagingTrigger;
 
 export type OtherMessagingTrigger = {
-  event: string
-  data: any
-} & RawMessagingTrigger
+  event: string;
+  data: any;
+} & RawMessagingTrigger;
 
 export type RoutingResultMessagingTrigger = {
-  event: 'CONVERSATION_ROUTING_RESULT'
-  data: EventData
-} & RawMessagingTrigger
+  event: "CONVERSATION_ROUTING_RESULT";
+  data: EventData;
+} & RawMessagingTrigger;
 
 export type MessageMessagingTrigger = {
-  event: 'CONVERSATION_MESSAGE'
-  data: EventData
-} & RawMessagingTrigger
+  event: "CONVERSATION_MESSAGE";
+  data: EventData;
+} & RawMessagingTrigger;
 
 export type ParticipantChangedMessagingTrigger = {
-  event: 'CONVERSATION_PARTICIPANT_CHANGED'
-  data: EventData
-} & RawMessagingTrigger
+  event: "CONVERSATION_PARTICIPANT_CHANGED";
+  data: EventData;
+} & RawMessagingTrigger;
 
 export type CloseConversationMessagingTrigger = {
-  event: 'CONVERSATION_CLOSE_CONVERSATION'
-  data: EventData
-} & RawMessagingTrigger
+  event: "CONVERSATION_CLOSE_CONVERSATION";
+  data: EventData;
+} & RawMessagingTrigger;
 
 type EventData = {
   channelPlatformKey: string;
@@ -86,7 +92,7 @@ export type RoutingResultPayload = {
     routingConfigurationType: string;
     queueId: string;
   };
-}
+};
 
 export type MessageDataPayload = {
   entryType: "Message";

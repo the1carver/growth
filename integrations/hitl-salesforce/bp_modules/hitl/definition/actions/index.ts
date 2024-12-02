@@ -9,7 +9,7 @@ import * as createUser from "./createUser/index";
 export * as createUser from "./createUser/index";
 
 export const actions = {
-  "stopHitl": stopHitl.stopHitl,
-  "startHitl": startHitl.startHitl,
-  "createUser": createUser.createUser,
-}
+  stopHitl: stopHitl.stopHitl,
+  startHitl: startHitl.startHitl,
+  createUser: createUser.createUser,
+};

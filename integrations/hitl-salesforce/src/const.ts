@@ -1,1 +1,1 @@
-export const INTEGRATION_NAME = 'hitl-salesforce'
+export const INTEGRATION_NAME = "hitl-salesforce";
