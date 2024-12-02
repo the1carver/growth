@@ -31,22 +31,22 @@ devDependencies:
     specifier: ^18.11.17
     version: 18.11.17
   '@typescript-eslint/eslint-plugin':
-    specifier: ^6.4.0
+    specifier: ^6.21.0
     version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.1)(typescript@4.9.5)
   eslint:
-    specifier: ^8.0.1
+    specifier: ^8.57.1
     version: 8.57.1
   eslint-config-standard-with-typescript:
     specifier: ^43.0.1
     version: 43.0.1(@typescript-eslint/eslint-plugin@6.21.0)(eslint-plugin-import@2.31.0)(eslint-plugin-n@16.6.2)(eslint-plugin-promise@6.6.0)(eslint@8.57.1)(typescript@4.9.5)
   eslint-plugin-import:
-    specifier: ^2.25.2
+    specifier: ^2.31.0
     version: 2.31.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.1)
   eslint-plugin-n:
-    specifier: '^15.0.0 || ^16.0.0 '
+    specifier: ^16.6.2
     version: 16.6.2(eslint@8.57.1)
   eslint-plugin-promise:
-    specifier: ^6.0.0
+    specifier: ^6.6.0
     version: 6.6.0(eslint@8.57.1)
   ts-node:
     specifier: ^10.9.1
