@@ -108,7 +108,7 @@ class MessagingApi {
                 'CONVERSATION_READ_ACKNOWLEDGEMENT',
                 'CONVERSATION_DELIVERY_ACKNOWLEDGEMENT',
                 'CONVERSATION_END_USER_CONSENT_UPDATED',
-                'CONVERSATION_ROUTING_RESULT'
+                'CONVERSATION_ROUTING_RESULT',
               ],
             },
             end: {
