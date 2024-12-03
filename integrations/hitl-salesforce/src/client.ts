@@ -13,17 +13,17 @@ import { secrets, Logger } from '.botpress'
 class MessagingApi {
   private _session?: LiveAgentSession
   private _client: Axios
-  private apiBaseUrl: string
+  private _apiBaseUrl: string
 
-  constructor(
+  public constructor(
     private _logger: Logger,
     private _config: SFMessagingConfig,
     _session?: LiveAgentSession
   ) {
-    this.apiBaseUrl = _config.endpoint + '/iamessage/api/v2'
+    this._apiBaseUrl = _config.endpoint + '/iamessage/api/v2'
 
     this._client = axios.create({
-      baseURL: this.apiBaseUrl,
+      baseURL: this._apiBaseUrl,
     })
 
     this._session = _session
@@ -35,7 +35,7 @@ class MessagingApi {
       // @ts-ignore
       axionsConfig.headers = {
         ...axionsConfig.headers,
-        ...this.getMessagingConfig().headers,
+        ...this._getMessagingConfig().headers,
       }
       return axionsConfig
     })
@@ -95,7 +95,7 @@ class MessagingApi {
     return this._session
   }
 
-  private getMessagingConfig() {
+  private _getMessagingConfig() {
     return {
       headers: {
         ...(this._session?.accessToken && {
@@ -121,7 +121,7 @@ class MessagingApi {
         `${secrets.TT_URL}/api/v1/sse`,
         {
           sse: {
-            headers: this.getMessagingConfig().headers,
+            headers: this._getMessagingConfig().headers,
             ignore: {
               onEvent: [
                 'ping',

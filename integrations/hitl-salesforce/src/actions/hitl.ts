@@ -2,8 +2,8 @@ import { RuntimeError } from '@botpress/client'
 import { v4 } from 'uuid'
 import { getSalesforceClient } from '../client'
 import { SFMessagingConfig } from '../definitions/schemas'
+import {closeConversation} from '../events/conversation-close'
 import * as bp from '.botpress'
-import {closeConversation} from "../events/conversation-close";
 
 export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({
   ctx,
@@ -15,7 +15,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({
     const { userId } = input
 
     const { user } = await client.getUser({ id: userId })
-    
+
     const salesforceClient = getSalesforceClient(
       logger,
       { ...(ctx.configuration as SFMessagingConfig) }
