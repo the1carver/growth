@@ -35,6 +35,11 @@ export const handler: IntegrationProps['handler'] = async ({ req, ctx, client, l
       case 'DATA':
         const { payload: messagingTrigger } = trigger
 
+        if (messagingTrigger.raw === 'Jwt is expired') {
+          await closeConversation({ conversation, ctx, client, logger })
+          return
+        }
+
         try {
           messagingTrigger.data = JSON.parse(messagingTrigger?.data)
         } catch (e) {
