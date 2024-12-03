@@ -39,7 +39,6 @@ export const closeConversation = async ({
   force?: boolean
 }) => {
   if (!force && isConversationClosed(conversation)) {
-    console.warn('Skipping because the conversation was already closed at the Integration', { conversation })
     // Skipping because the conversation was already closed at the Integration
     return
   }
