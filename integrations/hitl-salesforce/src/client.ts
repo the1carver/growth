@@ -112,7 +112,7 @@ class MessagingApi {
               ],
             },
             end: {
-              onRawMatch: ['force_end_tt_transport'],
+              onRawMatch: ['force_end_tt_transport', 'Jwt is expired'],
             },
           },
           target: {
