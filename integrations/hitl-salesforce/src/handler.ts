@@ -1,21 +1,12 @@
 import { getSalesforceClient } from './client'
 import { SFMessagingConfig } from './definitions/schemas'
-import {
-  closeConversation,
-  executeOnConversationClose,
-  isConversationClosed,
-} from './events/conversation-close'
+import { closeConversation, executeOnConversationClose, isConversationClosed } from './events/conversation-close'
 import { executeOnConversationMessage } from './events/conversation-message'
 import { executeOnParticipantChanged } from './events/participant-changed'
 import type { TriggerPayload } from './triggers'
 import { IntegrationProps } from '.botpress'
 
-export const handler: IntegrationProps['handler'] = async ({
-  req,
-  ctx,
-  client,
-  logger,
-}) => {
+export const handler: IntegrationProps['handler'] = async ({ req, ctx, client, logger }) => {
   if (!req.body) {
     logger.forBot().warn('Handler received an empty body')
     return
@@ -25,23 +16,14 @@ export const handler: IntegrationProps['handler'] = async ({
 
   logger.forBot().debug('Got Data on handler:', JSON.stringify(req.body))
 
-  if (
-    trigger.type === 'TRANSPORT_START' ||
-    trigger.type === 'DATA' && !trigger.payload
-  ) {
-    logger.forBot().debug(
-      `Ignoring sf event of type: ${
-        trigger.type
-      } with definition ${JSON.stringify(trigger, null, 2)}`
-    )
+  if (trigger.type === 'TRANSPORT_START' || (trigger.type === 'DATA' && !trigger.payload)) {
+    logger
+      .forBot()
+      .debug(`Ignoring sf event of type: ${trigger.type} with definition ${JSON.stringify(trigger, null, 2)}`)
     return
   }
 
-  if (
-    ['DATA', 'TRANSPORT_END', 'TRANSPORT_RESTORED', 'ERROR'].includes(
-      trigger.type
-    )
-  ) {
+  if (['DATA', 'TRANSPORT_END', 'TRANSPORT_RESTORED', 'ERROR'].includes(trigger.type)) {
     const { conversation } = await client.getOrCreateConversation({
       channel: 'hitl',
       tags: {
@@ -92,16 +74,7 @@ export const handler: IntegrationProps['handler'] = async ({
         return
       case 'ERROR':
         // If you start the sse session with debug enabled
-        logger
-          .forBot()
-          .debug(
-            'Got a debug error from the transport session: ' +
-              JSON.stringify(
-                { trigger },
-                null,
-                2
-              )
-          )
+        logger.forBot().debug('Got a debug error from the transport session: ' + JSON.stringify({ trigger }, null, 2))
         return
       case 'TRANSPORT_END':
         await closeConversation({ conversation, ctx, client, logger })

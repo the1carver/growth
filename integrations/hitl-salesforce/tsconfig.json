@@ -21,7 +21,7 @@
     "resolveJsonModule": true,
     "noPropertyAccessFromIndexSignature": false,
     "noUnusedLocals": false,
-    "noImplicitOverride": false,
+    "noImplicitOverride": false
   },
   "include": [".botpress/**/*", "src/**/*"]
 }

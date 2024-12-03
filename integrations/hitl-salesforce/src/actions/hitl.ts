@@ -2,27 +2,18 @@ import { RuntimeError } from '@botpress/client'
 import { v4 } from 'uuid'
 import { getSalesforceClient } from '../client'
 import { SFMessagingConfig } from '../definitions/schemas'
-import {closeConversation} from '../events/conversation-close'
+import { closeConversation } from '../events/conversation-close'
 import * as bp from '.botpress'
 
-export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({
-  ctx,
-  client,
-  input,
-  logger,
-}) => {
+export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ ctx, client, input, logger }) => {
   try {
     const { userId } = input
 
     const { user } = await client.getUser({ id: userId })
 
-    const salesforceClient = getSalesforceClient(
-      logger,
-      { ...(ctx.configuration as SFMessagingConfig) }
-    )
+    const salesforceClient = getSalesforceClient(logger, { ...(ctx.configuration as SFMessagingConfig) })
 
-    const unauthenticatedData =
-      await salesforceClient.createTokenForUnauthenticatedUser()
+    const unauthenticatedData = await salesforceClient.createTokenForUnauthenticatedUser()
 
     // Use transport-translator to get realtime data
     await salesforceClient.startSSE({
@@ -65,7 +56,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({
 
     await salesforceClient.createConversation(newSalesforceConversationId, {
       firstName: (splitName?.length && splitName[0]) || 'Anon',
-      _lastName: (!splitName?.length || splitName[splitName.length]) || '',
+      _lastName: !splitName?.length || splitName[splitName.length] || '',
       _email: user.tags?.email || 'anon@email.com',
     })
 
@@ -76,12 +67,7 @@ export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({
   }
 }
 
-export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({
-  ctx,
-  input,
-  client,
-  logger,
-}) => {
+export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx, input, client, logger }) => {
   const { conversation } = await client.getConversation({
     id: input.conversationId,
   })
@@ -90,24 +76,20 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({
     throw new RuntimeError("Conversation doesn't exist")
   }
 
-  await closeConversation({conversation, ctx, client, logger, force: true})
+  await closeConversation({ conversation, ctx, client, logger, force: true })
 
   return {}
 }
 
-export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({
-  client,
-  input,
-}) => {
+export const createUser: bp.IntegrationProps['actions']['createUser'] = async ({ client, input }) => {
   try {
-
     const { name, email, pictureUrl } = input
 
     const { user: botpressUser } = await client.getOrCreateUser({
       name,
       pictureUrl,
       tags: {
-        email
+        email,
       },
     })
 

@@ -18,11 +18,7 @@ export const executeOnConversationClose = async ({
   logger: bp.Logger
 }) => {
   if (conversation.tags.id !== messagingTrigger.data.conversationId) {
-    logger
-      .forBot()
-      .warn(
-        'Received conversation close for an conversation not created by the integration'
-      )
+    logger.forBot().warn('Received conversation close for an conversation not created by the integration')
     return
   }
 
@@ -43,10 +39,7 @@ export const closeConversation = async ({
   force?: boolean
 }) => {
   if (!force && isConversationClosed(conversation)) {
-    console.warn(
-      'Skipping because the conversation was already closed at the Integration',
-      { conversation }
-    )
+    console.warn('Skipping because the conversation was already closed at the Integration', { conversation })
     // Skipping because the conversation was already closed at the Integration
     return
   }

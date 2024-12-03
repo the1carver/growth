@@ -43,9 +43,7 @@ export const executeOnConversationMessage = async ({
   let entryPayload: MessageDataPayload
 
   try {
-    entryPayload = JSON.parse(
-      messagingTrigger.data.conversationEntry.entryPayload
-    ) as MessageDataPayload
+    entryPayload = JSON.parse(messagingTrigger.data.conversationEntry.entryPayload) as MessageDataPayload
   } catch (e) {
     logger.forBot().error('Could not parse entry payload', e)
     return
@@ -54,16 +52,14 @@ export const executeOnConversationMessage = async ({
   if (entryPayload.abstractMessage.messageType !== 'StaticContentMessage') {
     logger
       .forBot()
-        .warn(
-        `Salesforce Messaging HITL does not support messages of type '${entryPayload.abstractMessage.messageType}'`
-      )
+      .warn(`Salesforce Messaging HITL does not support messages of type '${entryPayload.abstractMessage.messageType}'`)
     return
   }
 
   if (entryPayload.abstractMessage.staticContent.formatType !== 'Text') {
     logger
       .forBot()
-        .warn(
+      .warn(
         `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`
       )
     return

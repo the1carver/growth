@@ -15,11 +15,7 @@ class MessagingApi {
   private _client: Axios
   private _apiBaseUrl: string
 
-  public constructor(
-    private _logger: Logger,
-    private _config: SFMessagingConfig,
-    _session?: LiveAgentSession
-  ) {
+  public constructor(private _logger: Logger, private _config: SFMessagingConfig, _session?: LiveAgentSession) {
     this._apiBaseUrl = _config.endpoint + '/iamessage/api/v2'
 
     this._client = axios.create({
@@ -41,10 +37,7 @@ class MessagingApi {
     })
   }
 
-  public async createConversation(
-    conversationId: string,
-    attributes: any
-  ): Promise<void> {
+  public async createConversation(conversationId: string, attributes: any): Promise<void> {
     try {
       const { data } = await this._client.post('/conversation', {
         conversationId,
@@ -54,40 +47,29 @@ class MessagingApi {
 
       return data
     } catch (e: any) {
-      this._logger
-        .forBot()
-        .error('Failed to create conversation on Salesforce: ' + e.message)
-      throw new RuntimeError(
-        'Failed to create conversation on Salesforce: ' + e.message
-      )
+      this._logger.forBot().error('Failed to create conversation on Salesforce: ' + e.message)
+      throw new RuntimeError('Failed to create conversation on Salesforce: ' + e.message)
     }
   }
 
   public async createTokenForUnauthenticatedUser(): Promise<CreateTokenResponse> {
     try {
-      const { data } = await this._client.post<CreateTokenResponse>(
-        '/authorization/unauthenticated/access-token',
-        {
-          orgId: this._config.organizationId,
-          esDeveloperName: this._config.DeveloperName,
-          capabilitiesVersion: '1',
-          platform: 'Web',
-          context: {
-            appName: 'botpressHITL',
-            clientVersion: '1.2.3',
-          },
-        }
-      )
+      const { data } = await this._client.post<CreateTokenResponse>('/authorization/unauthenticated/access-token', {
+        orgId: this._config.organizationId,
+        esDeveloperName: this._config.DeveloperName,
+        capabilitiesVersion: '1',
+        platform: 'Web',
+        context: {
+          appName: 'botpressHITL',
+          clientVersion: '1.2.3',
+        },
+      })
 
       this._session = { ...this._session, accessToken: data.accessToken }
       return data
     } catch (e) {
-      this._logger
-        .forBot()
-        .error('Failed to create conversation on Salesforce: ' + e.message)
-      throw new RuntimeError(
-        'Failed to create conversation on Salesforce: ' + e.message
-      )
+      this._logger.forBot().error('Failed to create conversation on Salesforce: ' + e.message)
+      throw new RuntimeError('Failed to create conversation on Salesforce: ' + e.message)
     }
   }
 
@@ -107,14 +89,10 @@ class MessagingApi {
   }
 
   // We use Transport Translator to translate from SSE -> Webhook
-  public async startSSE(opts?: {
-    webhook: { url: string }
-  }): Promise<CreateTTSessionResponse | undefined> {
+  public async startSSE(opts?: { webhook: { url: string } }): Promise<CreateTTSessionResponse | undefined> {
     try {
       if (!this._session) {
-        throw new RuntimeError(
-          "Tried to start a sse Session but doesn't have a Messaging Session"
-        )
+        throw new RuntimeError("Tried to start a sse Session but doesn't have a Messaging Session")
       }
 
       const { data } = await axios.post<CreateTTSessionResponse>(
@@ -151,12 +129,8 @@ class MessagingApi {
       this._session.sseKey = data.data.key
       return data
     } catch (e) {
-      this._logger
-        .forBot()
-        .error('Failed to start SSE Session with TT: ' + e.message)
-      throw new RuntimeError(
-        'Failed to start SSE Session with TT: ' + e.message
-      )
+      this._logger.forBot().error('Failed to start SSE Session with TT: ' + e.message)
+      throw new RuntimeError('Failed to start SSE Session with TT: ' + e.message)
     }
   }
 
@@ -169,49 +143,39 @@ class MessagingApi {
         },
       })
     } catch (e: any) {
-      this._logger
-        .forBot()
-        .error('Failed to stop SSE Session with TT: ' + e.message)
+      this._logger.forBot().error('Failed to stop SSE Session with TT: ' + e.message)
     }
   }
 
   public async sendMessage(message: string) {
     if (!this._session) {
-      throw new RuntimeError(
-        'Tried to send message to a session that is not initilized yet'
-      )
+      throw new RuntimeError('Tried to send message to a session that is not initilized yet')
     }
 
-    await this._client.post(
-      `/conversation/${this._session.conversationId}/message`,
-      {
-        message: {
-          id: v4(),
-          messageType: 'StaticContentMessage',
-          staticContent: {
-            formatType: 'Text',
-            text: message,
-          },
+    await this._client.post(`/conversation/${this._session.conversationId}/message`, {
+      message: {
+        id: v4(),
+        messageType: 'StaticContentMessage',
+        staticContent: {
+          formatType: 'Text',
+          text: message,
         },
-        esDeveloperName: this._config.DeveloperName,
-        isNewMessagingSession: false,
-      }
-    )
+      },
+      esDeveloperName: this._config.DeveloperName,
+      isNewMessagingSession: false,
+    })
   }
 
   public async closeConversation() {
     if (!this._session) {
-      throw new RuntimeError(
-        'Tried to end a conversation that is not initialized yet'
-      )
+      throw new RuntimeError('Tried to end a conversation that is not initialized yet')
     }
 
-    await this._client.delete(`/conversation/${this._session.conversationId}?esDeveloperName=${this._config.DeveloperName}`)
+    await this._client.delete(
+      `/conversation/${this._session.conversationId}?esDeveloperName=${this._config.DeveloperName}`
+    )
   }
 }
 
-export const getSalesforceClient = (
-  logger: Logger,
-  config: SFMessagingConfig,
-  session: LiveAgentSession = {}
-) => new MessagingApi(logger, config, session)
+export const getSalesforceClient = (logger: Logger, config: SFMessagingConfig, session: LiveAgentSession = {}) =>
+  new MessagingApi(logger, config, session)

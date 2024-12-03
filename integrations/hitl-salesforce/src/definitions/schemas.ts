@@ -15,8 +15,7 @@ export const AxiosProxyConfigSchema = z.object({
 export const SFMessagingConfigSchema = z.object({
   endpoint: z.string({
     invalid_type_error: 'Endpoint must be a string',
-    required_error:
-      'Saleforce endpoint is required, example: https://something.salesforceliveagent.com/chat',
+    required_error: 'Saleforce endpoint is required, example: https://something.salesforceliveagent.com/chat',
   }),
   organizationId: z.string(),
   DeveloperName: z.string(),
@@ -37,8 +36,7 @@ export const SSESessionSchema = z.object({
 
 export type SSESession = z.infer<typeof SSESessionSchema>
 
-export const LiveAgentSessionSchema =
-  MessagingSessionSchema.merge(SSESessionSchema)
+export const LiveAgentSessionSchema = MessagingSessionSchema.merge(SSESessionSchema)
 
 export type LiveAgentSession = z.infer<typeof LiveAgentSessionSchema>
 
@@ -57,9 +55,7 @@ export const CreateTTSessionResponseSchema = z.object({
   }),
 })
 
-export type CreateTTSessionResponse = z.output<
-  typeof CreateTTSessionResponseSchema
->
+export type CreateTTSessionResponse = z.output<typeof CreateTTSessionResponseSchema>
 
 export const ConversationSchema = z.object({
   id: z.string(),

@@ -1,8 +1,5 @@
 import { Conversation } from '@botpress/client'
-import {
-  ParticipantChangedDataPayload,
-  ParticipantChangedMessagingTrigger,
-} from '../triggers'
+import { ParticipantChangedDataPayload, ParticipantChangedMessagingTrigger } from '../triggers'
 import { closeConversation } from './conversation-close'
 import * as bp from '.botpress'
 
@@ -22,9 +19,7 @@ export const executeOnParticipantChanged = async ({
   let entryPayload: ParticipantChangedDataPayload
 
   try {
-    entryPayload = JSON.parse(
-      messagingTrigger.data.conversationEntry.entryPayload
-    ) as ParticipantChangedDataPayload
+    entryPayload = JSON.parse(messagingTrigger.data.conversationEntry.entryPayload) as ParticipantChangedDataPayload
   } catch (e) {
     logger.forBot().error('Could not parse entry payload', e)
     return
@@ -70,7 +65,8 @@ export const executeOnParticipantChanged = async ({
           },
         })
         return
-      default: break
+      default:
+        break
     }
   }
 }

@@ -8,8 +8,7 @@ export const channels = {
       tags: {
         transportKey: {
           title: 'Key for SSE',
-          description:
-            'Key from the TT service used to identify the SSE session',
+          description: 'Key from the TT service used to identify the SSE session',
         },
         id: {
           title: 'Salesforce Conversation ID',

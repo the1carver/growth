@@ -7,13 +7,7 @@ import { closeConversation } from './events/conversation-close'
 export const channels = {
   hitl: {
     messages: {
-      text: async ({
-        client,
-        ctx,
-        conversation,
-        logger,
-        payload
-      }: bp.AnyMessageProps) => {
+      text: async ({ client, ctx, conversation, logger, payload }: bp.AnyMessageProps) => {
         const {
           state: {
             payload: { accessToken },
@@ -51,9 +45,7 @@ export const channels = {
                 force: true,
               })
             } catch (e) {
-              logger
-                .forBot()
-                .error('Failed to finish invalid session: ' + err.message)
+              logger.forBot().error('Failed to finish invalid session: ' + err.message)
             }
           }
         }
