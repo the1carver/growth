@@ -11,8 +11,7 @@ import boxen from "boxen";
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const __localbp = path.resolve(__dirname, "node_modules/.bin/bp");
+const __localbp = path.resolve(path.resolve(process.cwd()), "node_modules/.bin/bp");
 
 // Load the parent project's .env file
 try {
