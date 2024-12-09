@@ -39,11 +39,21 @@ class MessagingApi {
 
   public async createConversation(conversationId: string, attributes: any): Promise<void> {
     try {
-      const { data } = await this._client.post('/conversation', {
+      const createConversationData = {
         conversationId,
         routingAttributes: attributes,
         esDeveloperName: this._config.DeveloperName,
+      }
+
+      this._logger.forBot().debug('Creating conversation on Salesforce with data: ', {
+        urlBase: this._client.defaults.baseURL,
+        headers: {
+          ...this._getMessagingConfig().headers,
+        },
+        createConversationData
       })
+
+      const { data } = await this._client.post('/conversation', createConversationData)
 
       return data
     } catch (e: any) {
