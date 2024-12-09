@@ -1,4 +1,3 @@
-import { Conversation } from '@botpress/client'
 import { MessageMessagingTrigger, MessageDataPayload } from '../triggers'
 import * as bp from '.botpress'
 
@@ -7,11 +6,10 @@ export const executeOnConversationMessage = async ({
   conversation,
   client,
   logger,
-}: {
+  ctx
+}: bp.HandlerProps & {
   messagingTrigger: MessageMessagingTrigger
-  conversation: Conversation
-  client: bp.Client
-  logger: bp.Logger
+  conversation: bp.AnyMessageProps['conversation']
 }) => {
   const {
     sender: { role: senderRole, subject: senderSubject },
@@ -71,7 +69,7 @@ export const executeOnConversationMessage = async ({
     userId: user?.id as string,
     conversationId: conversation.id,
     payload: {
-      text: `${(senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
+      text: `${( ctx.configuration.showAgentName && senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
         entryPayload.abstractMessage.staticContent.text
       }`,
     },

@@ -19,6 +19,7 @@ export const SFMessagingConfigSchema = z.object({
   }),
   organizationId: z.string(),
   DeveloperName: z.string(),
+  showAgentName: z.boolean().optional().describe('Show agent name or not on Agent messages')
 })
 
 export type SFMessagingConfig = z.infer<typeof SFMessagingConfigSchema>

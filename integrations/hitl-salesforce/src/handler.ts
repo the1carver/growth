@@ -6,7 +6,8 @@ import { executeOnParticipantChanged } from './events/participant-changed'
 import type { TriggerPayload } from './triggers'
 import { IntegrationProps } from '.botpress'
 
-export const handler: IntegrationProps['handler'] = async ({ req, ctx, client, logger }) => {
+export const handler: IntegrationProps['handler'] = async (props) => {
+  const { req, ctx, client, logger } = props
   if (!req.body) {
     logger.forBot().warn('Handler received an empty body')
     return
@@ -51,8 +52,7 @@ export const handler: IntegrationProps['handler'] = async ({ req, ctx, client, l
             await executeOnConversationMessage({
               messagingTrigger,
               conversation,
-              client,
-              logger,
+              ...props
             })
             break
           case 'CONVERSATION_PARTICIPANT_CHANGED':
