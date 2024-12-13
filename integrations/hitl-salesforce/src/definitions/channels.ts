@@ -14,6 +14,10 @@ export const channels = {
           title: 'Salesforce Conversation ID',
           description: 'Conversation ID from Salesforce Messaging',
         },
+        assignedAt: {
+          title: 'Assigned at',
+          description: 'When the conversation was assigned to an Agent',
+        },
         closedAt: {
           title: 'Closed at',
           description: 'When the conversation was marked as closed',

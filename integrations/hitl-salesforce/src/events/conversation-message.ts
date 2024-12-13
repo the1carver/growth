@@ -16,8 +16,12 @@ export const executeOnConversationMessage = async ({
     senderDisplayName,
   } = messagingTrigger.data.conversationEntry
 
-  // Only process Agent or System messages
-  if (senderRole === 'EndUser') {
+  let entryPayload: MessageDataPayload
+
+  try {
+    entryPayload = JSON.parse(messagingTrigger.data.conversationEntry.entryPayload) as MessageDataPayload
+  } catch (e) {
+    logger.forBot().error('Could not parse entry payload', e)
     return
   }
 
@@ -28,6 +32,11 @@ export const executeOnConversationMessage = async ({
     },
   })
 
+  // Only process Agent or System messages
+  if (senderRole === 'EndUser') {
+    return
+  }
+
   if (!user.name?.length) {
     void client.updateUser({
       ...user,
@@ -36,15 +45,6 @@ export const executeOnConversationMessage = async ({
         id: senderSubject,
       },
     })
-  }
-
-  let entryPayload: MessageDataPayload
-
-  try {
-    entryPayload = JSON.parse(messagingTrigger.data.conversationEntry.entryPayload) as MessageDataPayload
-  } catch (e) {
-    logger.forBot().error('Could not parse entry payload', e)
-    return
   }
 
   if (entryPayload.abstractMessage.messageType !== 'StaticContentMessage') {

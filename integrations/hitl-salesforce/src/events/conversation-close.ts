@@ -1,8 +1,8 @@
 import { Conversation } from '@botpress/client'
+import * as bp from '../../.botpress'
 import { getSalesforceClient } from '../client'
 import { SFMessagingConfig } from '../definitions/schemas'
 import { CloseConversationMessagingTrigger } from '../triggers'
-import * as bp from '.botpress'
 
 export const executeOnConversationClose = async ({
   messagingTrigger,
@@ -12,7 +12,7 @@ export const executeOnConversationClose = async ({
   logger,
 }: {
   messagingTrigger: CloseConversationMessagingTrigger
-  conversation: Conversation
+  conversation: bp.AnyMessageProps['conversation']
   ctx: bp.Context
   client: bp.Client
   logger: bp.Logger
@@ -32,30 +32,40 @@ export const closeConversation = async ({
   logger,
   force,
 }: {
-  conversation: Conversation
+  conversation: bp.AnyMessageProps['conversation']
   ctx: bp.Context
   client: bp.Client
   logger: bp.Logger
   force?: boolean
 }) => {
+  logger.forBot().debug('Closing conversation: ', JSON.stringify(conversation))
+
   if (!force && isConversationClosed(conversation)) {
+    logger.forBot().debug('Skipping since its already closed')
     // Skipping because the conversation was already closed at the Integration
     return
   }
 
-  await client.createEvent({
-    type: 'hitlStopped',
-    payload: {
-      conversationId: conversation.id,
-    },
-  })
-
   await client.updateConversation({
     id: conversation.id,
     tags: {
+      assignedAt: conversation.tags.assignedAt,
       transportKey: conversation.tags.transportKey,
       id: conversation.tags.id,
       closedAt: new Date().toISOString(),
+    },
+  })
+
+  if(!isConversationAssigned(conversation)) {
+    // TODO: Weird race condition stuff, remove when we have an event queue
+    await new Promise(resolve => setTimeout(resolve, 3000))
+  }
+
+  void client.createEvent({
+    type: 'hitlStopped',
+    conversationId: conversation.id,
+    payload: {
+      conversationId: conversation.id,
     },
   })
 
@@ -89,4 +99,8 @@ export const closeConversation = async ({
 
 export const isConversationClosed = (conversation: Conversation) => {
   return conversation.tags.closedAt?.length && true
+}
+
+export const isConversationAssigned = (conversation: bp.AnyMessageProps['conversation']) => {
+  return conversation.tags.assignedAt?.length && true
 }

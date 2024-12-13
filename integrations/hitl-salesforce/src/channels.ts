@@ -2,7 +2,8 @@ import { AxiosError } from 'axios'
 import * as bp from '../.botpress'
 import { getSalesforceClient } from './client'
 import { SFMessagingConfig } from './definitions/schemas'
-import { closeConversation } from './events/conversation-close'
+import { isConversationClosed } from './events/conversation-close'
+import { forceCloseConversation } from './utils'
 
 export const channels = {
   hitl: {
@@ -17,6 +18,50 @@ export const channels = {
           id: conversation.id,
           name: 'messaging',
         })
+
+        if (isConversationClosed(conversation)) {
+          logger.forBot().error('Tried to send a message from a conversation that is already closed: ' + JSON.stringify({conversation}, null, 2))
+          return
+        }
+
+        if(!conversation.tags.assignedAt && ctx.configuration.stopHITLEscalationKeywords?.length) {
+          const containedKeyword = ctx.configuration.stopHITLEscalationKeywords.find( (keyword) => {
+            return !!payload.text?.includes(keyword)
+          })
+          logger.forBot().warn(JSON.stringify({ containedKeyword }))
+          if(containedKeyword) {
+
+            console.log('Will call: ',  {
+              url: process.env.BP_WEBHOOK_URL + '/' + ctx.webhookId,
+              data: {
+                type: 'TRANSPORT_END',
+                transport: {
+                  key: conversation.tags.transportKey
+                }
+              }
+            })
+
+            await forceCloseConversation(ctx, conversation)
+          } else {
+            const { user: systemUser } = await client.getOrCreateUser({
+              name: 'System',
+              tags: {
+                id: conversation.id,
+              },
+            })
+
+            await client.createMessage({
+              tags: {},
+              type: 'text',
+              userId: systemUser?.id as string,
+              conversationId: conversation.id,
+              payload: {
+                text: ctx.configuration.conversationNotAssignedMessage || 'Conversation not assigned',
+              },
+            })
+          }
+          return
+        }
 
         const salesforceClient = getSalesforceClient(
           logger,
@@ -36,14 +81,7 @@ export const channels = {
           if ((err as AxiosError)?.response?.status === 403) {
             // Session is no longer valid
             try {
-              // TODO: Fix in future, triggering hitlStopped on messages is very unstable today, but this is an edge case
-              await closeConversation({
-                conversation,
-                ctx,
-                client,
-                logger,
-                force: true,
-              })
+              await forceCloseConversation(ctx, conversation)
             } catch (e) {
               logger.forBot().error('Failed to finish invalid session: ' + err.message)
             }
