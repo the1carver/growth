@@ -15,7 +15,7 @@ Once set up, a single command will:
 - Install the package
 
   ```bash
-  npm i --save-dev bp-integration-runner
+  npm i --save-dev @growth-botpress/bp-integration-runner
   ```
 
 - add a `.env` to the root of your botpress integration project with the following keys.
@@ -30,7 +30,7 @@ Once set up, a single command will:
   ```json
   {
     "scripts": {
-      "dev-local": "bp-integration-runner"
+      "dev-local": "@growth-botpress/bp-integration-runner"
     }
   }
   ```
