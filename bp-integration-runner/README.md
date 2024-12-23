@@ -30,7 +30,7 @@ Once set up, a single command will:
   ```json
   {
     "scripts": {
-      "dev-local": "@growth-botpress/bp-integration-runner"
+      "dev-local": "bp-integration-runner"
     }
   }
   ```
