@@ -15,6 +15,29 @@ const __filename = fileURLToPath(import.meta.url);
 const isWindows = os.platform() === 'win32';
 const __localbp = path.join(process.cwd(), "node_modules", ".bin", isWindows ? "bp.cmd" : "bp");
 
+// Verify that the user has a valid ngrok authentication code
+try { 
+  const cmd = `ngrok config check`;
+  execSync(cmd, { stdio: 'inherit' });
+} catch (e) {
+  console.log(boxen(
+    `
+    Could not verify ngrok authentication
+    Please authenticate ngrok by following these steps:
+
+    1. Create an account on https://ngrok.com
+    2. Get your auth token from https://dashboard.ngrok.com/get-started/setup
+    3. Run: npx ngrok config add-authtoken YOUR_TOKEN
+    `,
+    {
+      title: "⚠️ Missing ngrok Authentication ⚠️",
+      titleAlignment: "center",
+      borderColor: "red",
+      padding: 1,
+    }
+  ));
+  process.exit(1);
+}
 // Verify that bp executable exists
 if (!fs.existsSync(__localbp)) {
   console.log(boxen(
