@@ -9,13 +9,31 @@ import path from "path";
 import fs from "fs";
 import boxen from "boxen";
 import { fileURLToPath } from 'url';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
-const __localbp = path.resolve(path.resolve(process.cwd()), "node_modules/.bin/bp");
+const isWindows = os.platform() === 'win32';
+const __localbp = path.join(process.cwd(), "node_modules", ".bin", isWindows ? "bp.cmd" : "bp");
 
+// Verify that bp executable exists
+if (!fs.existsSync(__localbp)) {
+  console.log(boxen(
+    `
+    Could not find Botpress CLI at ${__localbp}
+    Please ensure @botpress/cli is installed in your project
+    `,
+    {
+      title: "⚠️ Missing Botpress CLI ⚠️",
+      titleAlignment: "center",
+      borderColor: "red",
+      padding: 1,
+    }
+  ));
+  process.exit(1);
+}
 // Load the parent project's .env file
 try {
-  dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+  dotenv.config({ path: path.join(process.cwd(), ".env") });
 } catch (e) {
   console.error("⚠️ No .env file found in the parent directory ⚠️");
   process.exit(1);
