@@ -2,8 +2,7 @@ import { AxiosError } from 'axios'
 import * as bp from '../.botpress'
 import { getSalesforceClient } from './client'
 import { SFMessagingConfig } from './definitions/schemas'
-import { isConversationClosed } from './events/conversation-close'
-import { forceCloseConversation } from './utils'
+import {closeConversation, isConversationClosed} from './events/conversation-close'
 
 export const channels = {
   hitl: {
@@ -30,18 +29,7 @@ export const channels = {
           })
           logger.forBot().warn(JSON.stringify({ containedKeyword }))
           if(containedKeyword) {
-
-            console.log('Will call: ',  {
-              url: process.env.BP_WEBHOOK_URL + '/' + ctx.webhookId,
-              data: {
-                type: 'TRANSPORT_END',
-                transport: {
-                  key: conversation.tags.transportKey
-                }
-              }
-            })
-
-            await forceCloseConversation(ctx, conversation)
+            await closeConversation({ conversation, ctx, client, logger })
           } else {
             const { user: systemUser } = await client.getOrCreateUser({
               name: 'System',
@@ -81,7 +69,7 @@ export const channels = {
           if ((err as AxiosError)?.response?.status === 403) {
             // Session is no longer valid
             try {
-              await forceCloseConversation(ctx, conversation)
+              await closeConversation({ conversation, ctx, client, logger, force: true })
             } catch (e) {
               logger.forBot().error('Failed to finish invalid session: ' + err.message)
             }

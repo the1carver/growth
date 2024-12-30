@@ -90,10 +90,6 @@ export const handler: IntegrationProps['handler'] = async (props) => {
       logger.forBot().warn('Got TRANSPORT_END')
       await closeConversation({ conversation, ctx, client, logger })
       return
-    case 'INTERNAL_FORCE_CLOSE_CONVERSATION':
-      logger.forBot().warn('Got INTERNAL_FORCE_CLOSE_CONVERSATION')
-      await closeConversation({ conversation, ctx, client, logger, force: true })
-      return
     case 'TRANSPORT_RESTORED':
       if (isConversationClosed(conversation)) {
         // Restored transport from a conversation that is already closed, ending transport

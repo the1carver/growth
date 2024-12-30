@@ -56,14 +56,17 @@ export const closeConversation = async ({
     },
   })
 
+  let delay = 0
+
   if(!isConversationAssigned(conversation)) {
-    // TODO: Weird race condition stuff, remove when we have an event queue
-    await new Promise(resolve => setTimeout(resolve, 3000))
+    // TODO: Weird race condition stuff, remove when the HITL Agent is migrated to plugins and uses it's own state
+    delay = 3000
   }
 
   void client.createEvent({
     type: 'hitlStopped',
     conversationId: conversation.id,
+    schedule: { delay },
     payload: {
       conversationId: conversation.id,
     },

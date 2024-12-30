@@ -3,7 +3,6 @@ import { v4 } from 'uuid'
 import { getSalesforceClient } from '../client'
 import { SFMessagingConfig } from '../definitions/schemas'
 import { closeConversation } from '../events/conversation-close'
-import { forceCloseConversation } from '../utils'
 import * as bp from '.botpress'
 
 export const startHitl: bp.IntegrationProps['actions']['startHitl'] = async ({ ctx, client, input, logger }) => {
@@ -89,22 +88,6 @@ export const stopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx
   }
 
   await closeConversation({ conversation, ctx, client, logger, force: true })
-
-  return {}
-}
-
-export const forceStopHitl: bp.IntegrationProps['actions']['stopHitl'] = async ({ ctx, input, client, logger }) => {
-  const { conversation } = await client.getConversation({
-    id: input.conversationId,
-  })
-
-  logger.forBot().warn(`Will force stop HITL on conversation ${conversation.id}`)
-
-  if(conversation?.tags?.transportKey) {
-    await forceCloseConversation(ctx, conversation)
-  } else {
-    logger.forBot().warn(`Conversation ${conversation.id} is not downstream as it doesn't have the tag`)
-  }
 
   return {}
 }
