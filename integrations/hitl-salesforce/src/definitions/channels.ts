@@ -1,9 +1,17 @@
-import type { IntegrationDefinitionProps } from '@botpress/sdk'
+import { messages, IntegrationDefinitionProps, z } from '@botpress/sdk'
+
+const withUserId = <S extends z.AnyZodObject>(s: { schema: S }) => ({
+  ...s,
+  schema: s.schema.extend({ userId: z.string().optional() }),
+})
 
 export const channels = {
   hitl: {
     title: 'Salesforce LiveAgent',
-    messages: {},
+    messages: {
+      text: withUserId(messages.defaults.text),
+      image: withUserId(messages.defaults.image),
+    },
     conversation: {
       tags: {
         transportKey: {

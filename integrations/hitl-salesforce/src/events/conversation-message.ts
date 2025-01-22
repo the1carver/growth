@@ -54,24 +54,41 @@ export const executeOnConversationMessage = async ({
     return
   }
 
-  if (entryPayload.abstractMessage.staticContent.formatType !== 'Text') {
-    logger
-      .forBot()
-      .warn(
-        `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`
-      )
-    return
+  const createMessage = async (args: { type: 'text' | 'image'; payload: any }) => {
+    return client.createMessage({
+      ...args,
+      tags: {},
+      userId: user?.id as string,
+      conversationId: conversation.id,
+    })
   }
 
-  await client.createMessage({
-    tags: {},
-    type: 'text',
-    userId: user?.id as string,
-    conversationId: conversation.id,
-    payload: {
-      text: `${( ctx.configuration.showAgentName && senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
-        entryPayload.abstractMessage.staticContent.text
-      }`,
-    },
-  })
+  switch (entryPayload.abstractMessage.staticContent.formatType) {
+    case 'Text':
+      await createMessage({
+        type: 'text',
+        payload: {
+          text: `${( ctx.configuration.showAgentName && senderRole === 'Agent' && `${senderDisplayName}: `) || ''}${
+              entryPayload.abstractMessage.staticContent.text
+          }`
+        }
+      })
+      break
+    case 'Attachments':
+      for(const attachment of entryPayload.abstractMessage.staticContent.attachments) {
+        await createMessage({
+          type: 'image',
+          payload: {
+            imageUrl: attachment.url
+          }
+        })
+      }
+      break
+    default: logger
+        .forBot()
+        .warn(
+            `Salesforce Messaging HITL does not support messages of format type '${entryPayload.abstractMessage.staticContent.formatType}'`
+        )
+    return
+  }
 }

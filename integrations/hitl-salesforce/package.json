@@ -1,6 +1,6 @@
 {
   "name": "hitl-salesforce",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Integration for HITL Salesforce Messaging",
   "private": true,
   "scripts": {

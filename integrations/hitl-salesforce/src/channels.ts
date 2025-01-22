@@ -77,6 +77,9 @@ export const channels = {
         }
       },
     },
+    image: async ({ client, ctx, conversation, logger, payload }: bp.AnyMessageProps) => {
+      logger.forBot().debug('Sending image with payload: ' + JSON.stringify(payload, null, 2))
+    }
   },
 } satisfies bp.IntegrationProps['channels']
 
