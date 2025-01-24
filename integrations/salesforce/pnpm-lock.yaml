@@ -2,11 +2,11 @@ lockfileVersion: '6.0'
 
 dependencies:
   '@botpress/client':
-    specifier: 0.35.0
-    version: 0.35.0
+    specifier: 0.22.0
+    version: 0.22.0
   '@botpress/sdk':
-    specifier: 1.6.1
-    version: 1.6.1(react@18.3.1)
+    specifier: ^0.10.13
+    version: 0.10.13(react@18.3.1)
   axios:
     specifier: ^1.7.7
     version: 1.7.7
@@ -36,8 +36,19 @@ devDependencies:
 
 packages:
 
-  /@botpress/client@0.35.0:
-    resolution: {integrity: sha512-K50pcx77l70bkaXl5ygzoEUcJDLgjosMSp/k/BeOoC1025ZQoHoIyE/2AyFdNKyOVK/5b84IT/fmnVZBWic6oA==}
+  /@botpress/client@0.22.0:
+    resolution: {integrity: sha512-RG6VWtv66FThME4TBcDWh4TEVsE52PnA7EajByq32fPn3gpIdV8TBHSQPvwNMr8vnfcUmU7cFFsnKtY8lNbUyQ==}
+    dependencies:
+      axios: 1.7.7
+      browser-or-node: 2.1.1
+      qs: 6.13.0
+      type-fest: 3.13.1
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@botpress/client@0.29.2:
+    resolution: {integrity: sha512-ixHcIGO/fAtbgpfskPv7HcVP9aqxvkJ0Id6CIs0o5pjX5hBkqDQUU3CcTU4/fKQY2AqoFncW1V0UAlCLwTeGAw==}
     dependencies:
       axios: 1.7.7
       axios-retry: 4.5.0(axios@1.7.7)
@@ -48,19 +59,19 @@ packages:
       - debug
     dev: false
 
-  /@botpress/sdk@1.6.1(react@18.3.1):
-    resolution: {integrity: sha512-BW+BKISodWAAJELEPH7srZJjEl4o99dObNHwKb18HlKGPt0MMuZH2zm6K7YsZBwCHLDmOlH47FR1R5Pmsh0qEg==}
+  /@botpress/sdk@0.10.13(react@18.3.1):
+    resolution: {integrity: sha512-mb5eTJzN/6eMjHEXPLZhVpKkMtwkqtta4X3ZUdTw4ownq/rUG5ggsxWtWsmHRuHq9rtrSHAqbGF9qY1ZVBGQQA==}
     dependencies:
-      '@botpress/client': 0.35.0
-      '@bpinternal/zui': 0.12.0(react@18.3.1)
+      '@botpress/client': 0.29.2
+      '@bpinternal/zui': 0.10.0(react@18.3.1)
     transitivePeerDependencies:
       - debug
       - react
     dev: false
 
-  /@bpinternal/zui@0.12.0(react@18.3.1):
-    resolution: {integrity: sha512-ztSLi+XuFT9WSURqwA3aWvMw3OH28PQNBGCr7/+TGm8xEqov9paoQUQXqsavF/RwHZFT9IYkPkcSkZ3qc8deZg==}
-    engines: {node: '>=16.0.0', pnpm: 8.6.2}
+  /@bpinternal/zui@0.10.0(react@18.3.1):
+    resolution: {integrity: sha512-iltVlwY3izpGCe995JFRmLemh6bAdg3BojpFTocXxS3P6K5XpzfBJUoPfeg3CMBgn6hRIEWxBF5rCqhnMKad9w==}
+    engines: {node: '>=16.0.0', pnpm: 9.1.0}
     peerDependencies:
       react: ^18.2.0
     dependencies:
