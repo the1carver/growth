@@ -40,10 +40,8 @@ export const closeConversation = async ({
   force?: boolean
   forceDelay?: boolean
 }) => {
-  logger.forBot().debug('Closing conversation: ', JSON.stringify(conversation))
 
   if (!force && isConversationClosed(conversation)) {
-    logger.forBot().debug('Skipping since its already closed')
     // Skipping because the conversation was already closed at the Integration
     return
   }
@@ -68,7 +66,7 @@ export const closeConversation = async ({
   void client.createEvent({
     type: 'hitlStopped',
     conversationId: conversation.id,
-    schedule: { delay },
+    ...( delay && { schedule: { delay }}),
     payload: {
       conversationId: conversation.id,
     },
