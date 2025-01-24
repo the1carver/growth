@@ -14,7 +14,7 @@ export const user = {
 export default new IntegrationDefinition({
   name: INTEGRATION_NAME,
   title: 'SalesForce Messaging (Alpha)',
-  version: '0.0.7',
+  version: '0.0.8',
   icon: 'icon.svg',
   description:
     'This integration allows your bot to interact with Salesforce Messaging, this version uses the HITL Interface',
