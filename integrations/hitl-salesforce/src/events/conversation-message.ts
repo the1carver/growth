@@ -76,7 +76,6 @@ export const executeOnConversationMessage = async ({
       break
     case 'Attachments':
       for(const attachment of entryPayload.abstractMessage.staticContent.attachments) {
-        console.log('Attachment', { attachment })
         if(attachment.mimeType.startsWith('image/')) {
           await createMessage({
             type: 'image',

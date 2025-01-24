@@ -1,4 +1,4 @@
-import { messages, IntegrationDefinitionProps, z } from '@botpress/sdk'
+import { messages, IntegrationDefinitionProps } from '@botpress/sdk'
 
 export const channels = {
   hitl: {

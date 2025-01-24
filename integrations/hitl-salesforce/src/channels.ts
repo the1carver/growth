@@ -5,7 +5,7 @@ import { SFMessagingConfig } from './definitions/schemas'
 import { closeConversation, isConversationClosed } from './events/conversation-close'
 
 const getSalesforceClientFromMessage = async (props: bp.AnyMessageProps) => {
-  const { client, ctx, conversation, logger, payload } = props
+  const { client, ctx, conversation, logger } = props
   const {
     state: {
       payload: { accessToken },

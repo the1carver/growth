@@ -1,4 +1,4 @@
-import { IntegrationDefinitionProps, z } from '@botpress/sdk'
+import { IntegrationDefinitionProps } from '@botpress/sdk'
 
 
 export const actions = {
