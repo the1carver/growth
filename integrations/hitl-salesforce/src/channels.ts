@@ -2,7 +2,7 @@ import { AxiosError } from 'axios'
 import * as bp from '../.botpress'
 import { getSalesforceClient } from './client'
 import { SFMessagingConfig } from './definitions/schemas'
-import {closeConversation, isConversationClosed} from './events/conversation-close'
+import { closeConversation, isConversationClosed } from './events/conversation-close'
 
 const getSalesforceClientFromMessage = async (props: bp.AnyMessageProps) => {
   const { client, ctx, conversation, logger, payload } = props
