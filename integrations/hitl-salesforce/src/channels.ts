@@ -4,22 +4,37 @@ import { getSalesforceClient } from './client'
 import { SFMessagingConfig } from './definitions/schemas'
 import {closeConversation, isConversationClosed} from './events/conversation-close'
 
+const getSalesforceClientFromMessage = async (props: bp.AnyMessageProps) => {
+  const { client, ctx, conversation, logger, payload } = props
+  const {
+    state: {
+      payload: { accessToken },
+    },
+  } = await client.getState({
+    type: 'conversation',
+    id: conversation.id,
+    name: 'messaging',
+  })
+  return getSalesforceClient(
+      logger,
+      { ...(ctx.configuration as SFMessagingConfig) },
+      {
+        accessToken,
+        sseKey: conversation.tags.transportKey,
+        conversationId: conversation.tags.id,
+      }
+  )
+}
+
 export const channels = {
   hitl: {
     messages: {
-      text: async ({ client, ctx, conversation, logger, payload }: bp.AnyMessageProps) => {
-        const {
-          state: {
-            payload: { accessToken },
-          },
-        } = await client.getState({
-          type: 'conversation',
-          id: conversation.id,
-          name: 'messaging',
-        })
+      text: async (props: bp.AnyMessageProps) => {
+        const { client, ctx, conversation, logger, payload } = props
 
         if (isConversationClosed(conversation)) {
           logger.forBot().error('Tried to send a message from a conversation that is already closed: ' + JSON.stringify({conversation}, null, 2))
+          await closeConversation({ conversation, ctx, client, logger, force: true, forceDelay: true })
           return
         }
 
@@ -51,15 +66,7 @@ export const channels = {
           return
         }
 
-        const salesforceClient = getSalesforceClient(
-          logger,
-          { ...(ctx.configuration as SFMessagingConfig) },
-          {
-            accessToken,
-            sseKey: conversation.tags.transportKey,
-            conversationId: conversation.tags.id,
-          }
-        )
+        const salesforceClient = await getSalesforceClientFromMessage(props)
 
         try {
           await salesforceClient.sendMessage(payload.text)
@@ -76,10 +83,27 @@ export const channels = {
           }
         }
       },
+      audio: async (props: bp.AnyMessageProps) => {
+        const { payload } = props
+        const salesforceClient = await getSalesforceClientFromMessage(props)
+        await salesforceClient.sendMessage(payload.audioUrl)
+      },
+      image: async (props: bp.AnyMessageProps) => {
+        const { payload } = props
+        const salesforceClient = await getSalesforceClientFromMessage(props)
+        await salesforceClient.sendMessage(payload.imageUrl)
+      },
+      video: async (props: bp.AnyMessageProps) => {
+        const { payload } = props
+        const salesforceClient = await getSalesforceClientFromMessage(props)
+        await salesforceClient.sendMessage(payload.videoUrl)
+      },
+      file: async (props: bp.AnyMessageProps) => {
+        const { payload } = props
+        const salesforceClient = await getSalesforceClientFromMessage(props)
+        await salesforceClient.sendMessage(payload.fileUrl)
+      }
     },
-    image: async ({ client, ctx, conversation, logger, payload }: bp.AnyMessageProps) => {
-      logger.forBot().debug('Sending image with payload: ' + JSON.stringify(payload, null, 2))
-    }
   },
 } satisfies bp.IntegrationProps['channels']
 

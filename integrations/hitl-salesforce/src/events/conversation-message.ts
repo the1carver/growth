@@ -54,7 +54,7 @@ export const executeOnConversationMessage = async ({
     return
   }
 
-  const createMessage = async (args: { type: 'text' | 'image'; payload: any }) => {
+  const createMessage = async (args: { type: 'text' | 'image' | 'file'; payload: any }) => {
     return client.createMessage({
       ...args,
       tags: {},
@@ -76,12 +76,22 @@ export const executeOnConversationMessage = async ({
       break
     case 'Attachments':
       for(const attachment of entryPayload.abstractMessage.staticContent.attachments) {
-        await createMessage({
-          type: 'image',
-          payload: {
-            imageUrl: attachment.url
-          }
-        })
+        console.log('Attachment', { attachment })
+        if(attachment.mimeType.startsWith('image/')) {
+          await createMessage({
+            type: 'image',
+            payload: {
+              imageUrl: attachment.url
+            }
+          })
+        } else {
+          await createMessage({
+            type: 'file',
+            payload: {
+              fileUrl: attachment.url
+            }
+          })
+        }
       }
       break
     default: logger

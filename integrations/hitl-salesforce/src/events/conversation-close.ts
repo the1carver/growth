@@ -31,12 +31,14 @@ export const closeConversation = async ({
   client,
   logger,
   force,
+  forceDelay
 }: {
   conversation: bp.AnyMessageProps['conversation']
   ctx: bp.Context
   client: bp.Client
   logger: bp.Logger
   force?: boolean
+  forceDelay?: boolean
 }) => {
   logger.forBot().debug('Closing conversation: ', JSON.stringify(conversation))
 
@@ -58,7 +60,7 @@ export const closeConversation = async ({
 
   let delay = 0
 
-  if(!isConversationAssigned(conversation)) {
+  if(!isConversationAssigned(conversation) || forceDelay) {
     // TODO: Weird race condition stuff, remove when the HITL Agent is migrated to plugins and uses it's own state
     delay = 3000
   }

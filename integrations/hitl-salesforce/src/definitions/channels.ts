@@ -9,8 +9,11 @@ export const channels = {
   hitl: {
     title: 'Salesforce LiveAgent',
     messages: {
-      text: withUserId(messages.defaults.text),
-      image: withUserId(messages.defaults.image),
+      text: messages.defaults.text,
+      image: messages.defaults.image,
+      file: messages.defaults.file,
+      audio: messages.defaults.audio,
+      video: messages.defaults.video,
     },
     conversation: {
       tags: {
