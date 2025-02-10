@@ -21,7 +21,14 @@ export const updateOpportunityStatus: Implementation['actions']['updateOpportuni
       data: result.data 
     }
   } catch (error) {
-    logger.forBot().debug(`'Update Opportunity Status' exception ${JSON.stringify(error)}`);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    logger.forBot().debug(`'Update Opportunity Status' exception: ${JSON.stringify(errorMessage)}`);
+
+    return { 
+      success: false, 
+      message: errorMessage, 
+      data: null 
+    };
   }
 };

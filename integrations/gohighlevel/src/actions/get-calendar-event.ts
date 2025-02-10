@@ -21,7 +21,14 @@ export const getCalendarEvents: Implementation['actions']['getCalendarEvents'] =
       data: result.data
     }
   } catch (error) {
-    logger.forBot().debug(`'Get Calendar Event' exception ${JSON.stringify(error)}`);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    logger.forBot().debug(`'Get Calendar Event' exception: ${JSON.stringify(errorMessage)}`);
+
+    return { 
+      success: false, 
+      message: errorMessage, 
+      data: null 
+    };
   }
 };

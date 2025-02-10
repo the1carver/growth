@@ -21,7 +21,14 @@ export const upsertOpportunity: Implementation['actions']['upsertOpportunity'] =
       data: result.data
     }
   } catch (error) {
-    logger.forBot().debug(`'Upsert Opportunity' exception ${JSON.stringify(error)}`);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    logger.forBot().debug(`'Upsert Opportunity' exception: ${JSON.stringify(errorMessage)}`);
+
+    return { 
+      success: false, 
+      message: errorMessage, 
+      data: null 
+    };
   }
 };

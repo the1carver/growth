@@ -1,7 +1,6 @@
 import { IntegrationDefinition, z } from '@botpress/sdk';
 import { integrationName } from './package.json';
 
-// Import the schemas
 import {
   createContactInputSchema,
   createContactOutputSchema,
@@ -13,8 +12,6 @@ import {
   deleteContactOutputSchema,
   upsertContactInputSchema,
   upsertContactOutputSchema,
-  getCompanyInputSchema,
-  getCompanyOutputSchema,
   createOpportunityInputSchema,
   createOpportunityOutputSchema,
   updateOpportunityInputSchema,
@@ -107,11 +104,6 @@ export default new IntegrationDefinition({
       input: { schema: upsertContactInputSchema },
       output: { schema: upsertContactOutputSchema },
     },
-    // getCompany: {
-    //   title: 'Get Company',
-    //   input: { schema: getCompanyInputSchema },
-    //   output: { schema: getCompanyOutputSchema },
-    // },
     getContactsByBusinessId: {
       title: 'Get Contacts By Business Id',
       input: { schema: getContactsByBusinessIdInputSchema },

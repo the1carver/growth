@@ -21,7 +21,14 @@ export const getContactsByBusinessId: Implementation['actions']['getContactsByBu
       data: result.data
     }
   } catch (error) {
-    logger.forBot().debug(`'Get Contacts By Business ID' exception ${JSON.stringify(error)}`);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    logger.forBot().debug(`'Get Contacts By Business ID' exception: ${JSON.stringify(errorMessage)}`);
+
+    return { 
+      success: false, 
+      message: errorMessage, 
+      data: null 
+    };
   }
 };

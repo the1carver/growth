@@ -26,7 +26,14 @@ export const getOrderById: Implementation['actions']['getOrderById'] = async ({ 
       data: result.data 
     }
   } catch (error) {
-    logger.forBot().debug(`'Get Order By Id' exception ${JSON.stringify(error)}`);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    logger.forBot().debug(`'Get Order By Id' exception: ${JSON.stringify(errorMessage)}`);
+
+    return { 
+      success: false, 
+      message: errorMessage, 
+      data: null 
+    };
   }
 };

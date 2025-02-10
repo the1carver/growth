@@ -21,7 +21,14 @@ export const deleteContact: Implementation['actions']['deleteContact'] = async (
       data: result.data
     }
   } catch (error) {
-    logger.forBot().debug(`'Delete Contact' exception ${JSON.stringify(error)}`);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    logger.forBot().debug(`'Delete Contact' exception: ${JSON.stringify(errorMessage)}`);
+
+    return { 
+      success: false, 
+      message: errorMessage, 
+      data: null 
+    };
   }
 };

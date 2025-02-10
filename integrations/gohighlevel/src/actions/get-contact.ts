@@ -21,7 +21,14 @@ export const getContact: Implementation['actions']['getContact'] = async ({ ctx,
       data: result.data
     }
   } catch (error) {
-    logger.forBot().debug(`'Get Contact' exception ${JSON.stringify(error)}`);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    logger.forBot().debug(`'Get Contact' exception: ${JSON.stringify(errorMessage)}`);
+
+    return { 
+      success: false, 
+      message: errorMessage, 
+      data: null 
+    };
   }
 };

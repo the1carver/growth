@@ -21,7 +21,14 @@ export const listOrders: Implementation['actions']['listOrders'] = async ({ ctx,
       data: result.data 
     }
   } catch (error) {
-    logger.forBot().debug(`'List Orders' exception ${JSON.stringify(error)}`);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    logger.forBot().debug(`'List Orders' exception: ${JSON.stringify(errorMessage)}`);
+
+    return { 
+      success: false, 
+      message: errorMessage, 
+      data: null 
+    };
   }
 };
