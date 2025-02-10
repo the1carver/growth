@@ -46,7 +46,7 @@ import {
 
 export default new IntegrationDefinition({
   name: integrationName ?? 'go-high-level',
-  version: '25.2.0',
+  version: '1.0.0',
   title: 'GoHighLevel',
   readme: 'hub.md',
   icon: 'icon.svg',
