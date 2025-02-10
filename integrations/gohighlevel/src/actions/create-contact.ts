@@ -13,8 +13,8 @@ export const createContact: Implementation['actions']['createContact'] = async (
   try {
     const result = await ghlClient.createContact(validatedInput);
     
-    logger.forBot().debug(`Successful - Create Contact - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Create Contact - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -24,7 +24,7 @@ export const createContact: Implementation['actions']['createContact'] = async (
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Create Contact' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Create Contact' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

@@ -10,10 +10,10 @@ export const deleteOpportunity: Implementation['actions']['deleteOpportunity'] =
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.deleteOpportunity(validatedInput.opportunityId);
+    const result = await ghlClient.deleteOpportunity(validatedInput.opportunityId);
     
-    logger.forBot().debug(`Successful - Delete Opportunity - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Delete Opportunity - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const deleteOpportunity: Implementation['actions']['deleteOpportunity'] =
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Delete Opportunity' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Delete Opportunity' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

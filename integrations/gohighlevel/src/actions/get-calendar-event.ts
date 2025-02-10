@@ -10,10 +10,10 @@ export const getCalendarEvents: Implementation['actions']['getCalendarEvents'] =
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.getCalendarEvents(validatedInput.properties);
+    const result = await ghlClient.getCalendarEvents(validatedInput.properties);
     
-    logger.forBot().debug(`Successful - Get Calendar Event - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Get Calendar Event - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const getCalendarEvents: Implementation['actions']['getCalendarEvents'] =
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Get Calendar Event' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Get Calendar Event' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

@@ -10,10 +10,10 @@ export const createAppointment: Implementation['actions']['createAppointment'] =
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.createAppointment(validatedInput.properties);
+    const result = await ghlClient.createAppointment(validatedInput.properties);
     
-    logger.forBot().debug(`Successful - Create Appointment - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Create Appointment - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const createAppointment: Implementation['actions']['createAppointment'] =
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Create Appointment' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Create Appointment' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

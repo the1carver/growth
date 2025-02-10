@@ -12,8 +12,8 @@ export const updateAppointment: Implementation['actions']['updateAppointment'] =
   try {
     const result = await ghlClient.updateAppointment(validatedInput.appointmentId, validatedInput.properties);
 
-    logger.forBot().debug(`Successful - Update Appointment - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Update Appointment - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const updateAppointment: Implementation['actions']['updateAppointment'] =
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Update Appointment' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Update Appointment' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

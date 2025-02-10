@@ -9,8 +9,8 @@ export const makeApiCall: Implementation['actions']['makeApiCall'] = async ({ ct
   try {
     const result = await ghlClient.makeApiCall(validatedInput.endpoint, validatedInput.method, validatedInput.data, validatedInput.params)
     
-    logger.forBot().debug(`Successful - Make API Call - ${JSON.stringify(validatedInput)}`)
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`)
+    logger.forBot().info(`Successful - Make API Call - ${JSON.stringify(validatedInput)}`)
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`)
     
     return { 
       success: result.success, 
@@ -20,7 +20,7 @@ export const makeApiCall: Implementation['actions']['makeApiCall'] = async ({ ct
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Make API Call' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Make API Call' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

@@ -12,8 +12,8 @@ export const getContactsByBusinessId: Implementation['actions']['getContactsByBu
   try {
     const result = await ghlClient.getContactsByBusinessId(validatedInput.businessId, validatedInput.params);
     
-    logger.forBot().debug(`Successful - Get Contacts By Business ID - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Get Contacts By Business ID - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const getContactsByBusinessId: Implementation['actions']['getContactsByBu
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Get Contacts By Business ID' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Get Contacts By Business ID' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

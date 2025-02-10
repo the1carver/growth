@@ -10,10 +10,10 @@ export const deleteEvent: Implementation['actions']['deleteEvent'] = async ({ ct
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.deleteEvent(validatedInput.eventId);
+    const result = await ghlClient.deleteEvent(validatedInput.eventId);
     
-    logger.forBot().debug(`Successful - Delete Event - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Delete Event - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const deleteEvent: Implementation['actions']['deleteEvent'] = async ({ ct
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Delete Event' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Delete Event' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 
