@@ -10,10 +10,10 @@ export const listOrders: Implementation['actions']['listOrders'] = async ({ ctx,
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.listOrders(validatedInput.properties);
+    const result = await ghlClient.listOrders(validatedInput.properties);
     
-    logger.forBot().debug(`Successful - List Orders - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - List Orders - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const listOrders: Implementation['actions']['listOrders'] = async ({ ctx,
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'List Orders' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'List Orders' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

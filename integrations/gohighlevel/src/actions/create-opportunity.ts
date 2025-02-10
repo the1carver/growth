@@ -10,10 +10,10 @@ export const createOpportunity: Implementation['actions']['createOpportunity'] =
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.createOpportunity(validatedInput.properties);
+    const result = await ghlClient.createOpportunity(validatedInput.properties);
     
-    logger.forBot().debug(`Successful - Create Opportunity - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Create Opportunity - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const createOpportunity: Implementation['actions']['createOpportunity'] =
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Create Opportunity' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Create Opportunity' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

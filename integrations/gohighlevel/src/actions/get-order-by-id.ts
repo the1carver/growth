@@ -15,10 +15,10 @@ export const getOrderById: Implementation['actions']['getOrderById'] = async ({ 
   }
 
   try {
-     const result = await ghlClient.getOrderById(validatedInput.orderId, JSON.stringify(params));
+    const result = await ghlClient.getOrderById(validatedInput.orderId, JSON.stringify(params));
     
-    logger.forBot().debug(`Successful - Get Order By Id - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Get Order By Id - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -28,7 +28,7 @@ export const getOrderById: Implementation['actions']['getOrderById'] = async ({ 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Get Order By Id' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Get Order By Id' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

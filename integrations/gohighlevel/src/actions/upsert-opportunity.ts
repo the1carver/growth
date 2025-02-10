@@ -12,8 +12,8 @@ export const upsertOpportunity: Implementation['actions']['upsertOpportunity'] =
   try {
     const result = await ghlClient.upsertOpportunity(validatedInput.properties);
     
-    logger.forBot().debug(`Successful - Upsert Opportunity - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Upsert Opportunity - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const upsertOpportunity: Implementation['actions']['upsertOpportunity'] =
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Upsert Opportunity' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Upsert Opportunity' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

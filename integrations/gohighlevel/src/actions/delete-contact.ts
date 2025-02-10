@@ -10,10 +10,10 @@ export const deleteContact: Implementation['actions']['deleteContact'] = async (
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.deleteContact(validatedInput.contactId);
+    const result = await ghlClient.deleteContact(validatedInput.contactId);
     
-    logger.forBot().debug(`Successful - Delete Contact - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Delete Contact - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const deleteContact: Implementation['actions']['deleteContact'] = async (
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Delete Contact' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Delete Contact' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

@@ -10,10 +10,10 @@ export const updateOpportunityStatus: Implementation['actions']['updateOpportuni
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.updateOpportunityStatus(validatedInput.opportunityId, validatedInput.status);
+    const result = await ghlClient.updateOpportunityStatus(validatedInput.opportunityId, validatedInput.status);
     
-    logger.forBot().debug(`Successful - Update Opportunity Status - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Update Opportunity Status - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const updateOpportunityStatus: Implementation['actions']['updateOpportuni
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Update Opportunity Status' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Update Opportunity Status' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

@@ -1,5 +1,8 @@
 import axios, { AxiosError } from "axios";
 import * as bp from '.botpress'
+import { IntegrationLogger } from '@botpress/sdk';
+
+const logger = new IntegrationLogger();
 
 import sdk, { z } from '@botpress/sdk'
 
@@ -32,7 +35,7 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
     });
 
     if (!state?.payload?.accessToken || !state?.payload?.refreshToken) {
-      console.error("No credentials found in state");
+      logger.forBot().error("No credentials found in state");
       return null;
     }
 
@@ -41,7 +44,7 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
       refreshToken: state.payload.refreshToken,
     };
   } catch (error) {
-    console.error("Error retrieving credentials from state:", error);
+    logger.forBot().error("Error retrieving credentials from state:", error);
     return null;
   }
 }
@@ -51,7 +54,7 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
    try {
     const creds = await this.getStoredCredentials()
     if (!creds) {
-      console.error(
+      logger.forBot().error(
         "Error refreshing access token"
       );
       throw new Error("Error grabbing credentials.");
@@ -79,13 +82,13 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
     } catch (error: any) {
       // If token is expired, refresh and retry once
       if (error.response?.status === 401) {
-        console.warn("Access token expired. Refreshing...", error);
+        logger.forBot().warn("Access token expired. Refreshing...", error);
         await this.refreshAccessToken();
 
         return this.makeRequest(endpoint, method, data, paramString); // Retry request with new token
       }
 
-      console.error(`Error in ${method} ${endpoint}:`, error.response?.data || error.message);
+      logger.forBot().error(`Error in ${method} ${endpoint}:`, error.response?.data || error.message);
       return { success: false, message: error.response?.data?.message || error.message, data: null };
     }
   }
@@ -97,7 +100,7 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
     try {
       const creds = await this.getStoredCredentials()
       if (!creds) {
-        console.error(
+        logger.forBot().error(
           "Error refreshing access token"
         );
         throw new Error("Error grabbing credentials.");
@@ -126,11 +129,11 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
       }
     })
   
-      console.info("Access token refreshed successfully.");
+      logger.forBot().info("Access token refreshed successfully.");
     } catch (error: unknown) {
       const err = error as AxiosError; // Type assertion for Axios errors
   
-      console.error(
+      logger.forBot().error(
         "Error refreshing access token:",
         err.response?.data || err.message
       );
@@ -139,115 +142,91 @@ private async getStoredCredentials(): Promise<{ accessToken: string; refreshToke
     }
   }
 
-  /** Makes a general API call */
   async makeApiCall(endpoint: string, method: string = "GET", data: any = null, params: any = {}) {
     return this.makeRequest(endpoint, method, data, params);
   }
 
-  /** Retrieves a contact by ID */
   async getContact(contactId: string) {
     return this.makeRequest(`/contacts/${contactId}`);
   }
 
-  /** Updates an existing contact */
   async updateContact(contactId: string, contactData: any) {
     return this.makeRequest(`/contacts/${contactId}`, "PUT", contactData);
   }
 
-  /** Deletes a contact by ID */
   async deleteContact(contactId: string) {
     return this.makeRequest(`/contacts/${contactId}`, "DELETE");
   }
 
-  /** Upserts a contact */
   async upsertContact(contactData: any) {
     return this.makeRequest(`/contacts/upsert`, "POST", contactData);
   }
 
-  /** Retrieves contacts by business ID */
   async getContactsByBusinessId(businessId: string, params: any = {}) {
     return this.makeRequest(`/contacts/business/${businessId}`, "GET", null, params);
   }
 
-  /** Creates a new contact */
   async createContact(contactData: any) {
     return this.makeRequest(`/contacts/`, "POST", contactData);
   }
 
-  /** Retrieves a company by ID */
   async getCompany(companyId: string) {
     return this.makeRequest(`/companies/${companyId}`);
   }
 
-  /** Retrieves an opportunity by ID */
   async getOpportunity(opportunityId: string) {
     return this.makeRequest(`/opportunities/${opportunityId}`);
   }
 
-  /** Creates a new opportunity */
   async createOpportunity(opportunityData: any) {
     return this.makeRequest(`/opportunities/`, "POST", opportunityData);
   }
 
-  /** Updates an existing opportunity */
   async updateOpportunity(opportunityId: string, opportunityData: any) {
     return this.makeRequest(`/opportunities/${opportunityId}`, "PUT", opportunityData);
   }
 
-  /** Updates the status of an existing opportunity */
   async updateOpportunityStatus(opportunityId: string, status: string) {
     return this.makeRequest(`/opportunities/${opportunityId}/status`, "PUT", { status });
   }
 
-  /** Deletes an opportunity by ID */
   async deleteOpportunity(opportunityId: string) {
     return this.makeRequest(`/opportunities/${opportunityId}`, "DELETE");
   }
 
-  /** Upserts an opportunity */
   async upsertOpportunity(opportunityData: any) {
     return this.makeRequest(`/opportunities/upsert`, "POST", opportunityData);
   }
 
-  /** Lists orders by location */
   async listOrders(params: string) {
     return this.makeRequest(`/payments/orders`, "GET", null, params);
   }
 
-  /** Retrieves an order by ID */
   async getOrderById(orderId: string, params: string) {
     return this.makeRequest(`/payments/orders/${orderId}`, "GET", null, params);
   }
 
-  /** Retrieves calendar events */
   async getCalendarEvents(eventData: string) {
     return this.makeRequest(`/calendars/events`, "GET", null, eventData);
   }
 
-  /** Retrieves an appointment by ID */
   async getAppointment(appointmentId: string) {
     return this.makeRequest(`/calendars/events/appointments/${appointmentId}`);
   }
 
-  /** Updates an existing appointment */
   async updateAppointment(appointmentId: string, appointmentData: any) {
     return this.makeRequest(`/calendars/events/appointments/${appointmentId}`, "PUT", appointmentData);
   }
 
-  /** Creates a new appointment */
   async createAppointment(appointmentData: any) {
     return this.makeRequest(`/calendars/events/appointments`, "POST", appointmentData);
   }
 
-  /** Deletes an event by ID */
   async deleteEvent(eventId: string) {
     return this.makeRequest(`/calendars/events/${eventId}`, "DELETE");
   }
 }
 
-
-
-/** Returns a new instance of GoHighLevelApi */
 export const getClient = (
   accessToken: string,
   refreshToken: string,

@@ -10,10 +10,10 @@ export const updateContact: Implementation['actions']['updateContact'] = async (
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.updateContact(validatedInput.contactId, validatedInput.properties);
+    const result = await ghlClient.updateContact(validatedInput.contactId, validatedInput.properties);
     
-    logger.forBot().debug(`Successful - Update Contact - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Update Contact - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const updateContact: Implementation['actions']['updateContact'] = async (
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Update Contact' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Update Contact' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 

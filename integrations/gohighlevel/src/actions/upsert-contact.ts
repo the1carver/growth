@@ -10,10 +10,10 @@ export const upsertContact: Implementation['actions']['upsertContact'] = async (
   logger.forBot().debug(`Validated Input - ${JSON.stringify(validatedInput)}`);
 
   try {
-     const result = await ghlClient.upsertContact(validatedInput.properties);
+    const result = await ghlClient.upsertContact(validatedInput.properties);
     
-    logger.forBot().debug(`Successful - Upsert Contact - ${JSON.stringify(validatedInput)}`);
-    logger.forBot().debug(`Result - ${JSON.stringify(result.data)}`);
+    logger.forBot().info(`Successful - Upsert Contact - ${JSON.stringify(validatedInput)}`);
+    logger.forBot().info(`Result - ${JSON.stringify(result.data)}`);
 
     return { 
       success: result.success, 
@@ -23,7 +23,7 @@ export const upsertContact: Implementation['actions']['upsertContact'] = async (
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
-    logger.forBot().debug(`'Upsert Contact' exception: ${JSON.stringify(errorMessage)}`);
+    logger.forBot().error(`'Upsert Contact' exception: ${JSON.stringify(errorMessage)}`);
 
     return { 
       success: false, 
