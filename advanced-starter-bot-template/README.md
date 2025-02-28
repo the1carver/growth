@@ -17,7 +17,7 @@ This is an advanced starter bot template. You can use is as a starting point to 
 
 ## How to use
 
-1. download [kitchen-sink.bpz](advanced-starter-bot-template/kitchen-sink.bpz)
+1. download [kitchen-sink.bpz](../advanced-starter-bot-template/kitchen-sink.bpz)
 2. open [Botpress Studio](https://studio.botpress.cloud)
 3. click the Botpress icon at the top left
 4. click "import bot from template"
