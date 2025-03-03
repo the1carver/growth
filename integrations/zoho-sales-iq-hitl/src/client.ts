@@ -1,5 +1,10 @@
 import axios, { AxiosError } from "axios";
 import * as bp from '.botpress'
+import * as bpclient from "@botpress/client";
+
+import { IntegrationLogger } from '@botpress/sdk';
+
+const logger = new IntegrationLogger();
 
 // Zoho Data Centers
 const zohoAuthUrls = new Map<string, string>([
@@ -48,7 +53,7 @@ export class ZohoApi {
       });
 
       if (!state?.payload?.accessToken) {
-        console.error("No credentials found in state");
+        logger.forBot().error("No credentials found in state");
         return null;
       }
 
@@ -56,7 +61,7 @@ export class ZohoApi {
         accessToken: state.payload.accessToken,
       };
     } catch (error) {
-      console.error("Error retrieving credentials from state:", error);
+      logger.forBot().error("Error retrieving credentials from state:", error);
       return null;
     }
   }
@@ -65,20 +70,22 @@ export class ZohoApi {
     try {
       const creds = await this.getStoredCredentials();
       if (!creds) {
-        console.error("Error retrieving credentials.");
-        throw new Error("Error grabbing credentials.");
+        logger.forBot().error("Error retrieving credentials.");
+        throw new bpclient.RuntimeError(
+          "Error grabbing credentials."
+        );
       }
   
       const headers: Record<string, string> = {
         Authorization: `Bearer ${creds.accessToken}`,
         Accept: "application/json",
       };
-      console.log("accessToken", creds.accessToken);
+      logger.forBot().info("accessToken", creds.accessToken);
       if (method !== "GET" && method !== "DELETE") {
         headers["Content-Type"] = "application/json";
       }
-      console.log(`Making request to ${method} ${endpoint}`);
-      console.log("Params:", params);
+      logger.forBot().info(`Making request to ${method} ${endpoint}`);
+      logger.forBot().info("Params:", params);
 
       const response = await axios({
         method,
@@ -94,16 +101,16 @@ export class ZohoApi {
         data: response.data 
       };
     } catch (error: any) {
-      console.error(error.response);
+      logger.forBot().error(error.response);
 
       if (error.response?.status === 401 || error.response?.status === 400) {
-        console.warn("Access token expired. Refreshing...", error);
+        logger.forBot().warn("Access token expired. Refreshing...", error);
 
         await this.refreshAccessToken();
         return this.makeHitlRequest(endpoint, method, data, params);
       }
 
-      console.error(`Error in ${method} ${endpoint}:`, error.response?.data || error.message);
+      logger.forBot().error(`Error in ${method} ${endpoint}:`, error.response?.data || error.message);
 
       return { 
         success: false, 
@@ -118,8 +125,10 @@ export class ZohoApi {
       const creds = await this.getStoredCredentials();
       
       if (!creds) {
-        console.error("Error refreshing access token");
-        throw new Error("Error grabbing credentials.");
+        logger.forBot().error("Error refreshing access token");
+        throw new bpclient.RuntimeError(
+          "Error grabbing credentials."
+        );
       }
 
       const requestData = new URLSearchParams();
@@ -133,7 +142,7 @@ export class ZohoApi {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      console.error(response);
+      logger.forBot().error(response);
 
       await this.bpClient.setState({
         id: this.ctx.integrationId,
@@ -144,11 +153,13 @@ export class ZohoApi {
         },
       });
 
-      console.info("Access token refreshed successfully.");
+      logger.forBot().info("Access token refreshed successfully.");
     } catch (error: unknown) {
       const err = error as AxiosError;
-      console.error("Error refreshing access token:", err.response?.data || err.message);
-      throw new Error("Authentication error. Please reauthorize the integration.");
+      logger.forBot().error("Error refreshing access token:", err.response?.data || err.message);
+      throw new bpclient.RuntimeError(
+        "Authentication error. Please reauthorize the integration."
+      );
     }
   }
 
@@ -176,14 +187,14 @@ export class ZohoApi {
       const response = await this.makeHitlRequest(endpoint, "POST", payload);
 
       if (response.success) {
-        console.log("Message sent successfully:", response.data);
+        logger.forBot().info("Message sent successfully:", response.data);
       } else {
-        console.error("Failed to send message:", response.message);
+        logger.forBot().error("Failed to send message:", response.message);
       }
 
       return response;
     } catch (error) {
-      console.error("Error sending message to Zoho SalesIQ:", error);
+      logger.forBot().error("Error sending message to Zoho SalesIQ:", error);
       throw error;
     }
   }

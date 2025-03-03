@@ -25,12 +25,12 @@ This integration allows Botpress to **seamlessly escalate conversations** from a
 
 # Zoho SalesIQ Integration Setup Guide
 
-### **[Loom video walk through setting up the OAuth configuration.](https://www.loom.com/share/41c2811c047a48cbb08a2d1b0dc98f69?sid=8cb4d496-2cca-415d-be1d-536a87c73a3a)** ###
+### **[Loom video walk through setting up the OAuth configuration.](https://www.loom.com/share/d3c758e372e54a32b4f29d7da44af1ce?sid=38c81c81-486e-4a48-bfb1-941b02d052d1)** ###
 
 ## Step 1: Create a Zoho Developer Account
 
 1. Open the Zoho API Console:  
-   [https://api-console.zohocloud.ca/add?client_type=OR](https://api-console.zohocloud.ca/add?client_type=ORG)
+   [https://api-console.zohocloud.ca/add?client_type=ORG](https://api-console.zohocloud.ca/add?client_type=ORG)
 2. Sign in or create a Zoho Developer account if needed.
 3. Create a new OAuth client.
 4. Set the **Redirect URI** to your **Botpress webhook URL**.
@@ -139,10 +139,40 @@ To fully integrate with **Zoho SalesIQ**, you need to gather the following detai
    
    - Example **App ID**: `6338000000002238`
 
-## Step 6: Final Integration Setup
+## Step 6: Final Integration Configuration Setup
 
 Enter the following details into your integration configuration:
 
 ✅ **Screen Name**  
 ✅ **App ID**  
 ✅ **Department ID**
+
+# How to Set Up a Webhook in SalesIQ for Botpress
+
+Follow these steps to integrate your SalesIQ account with Botpress using webhooks.
+
+## Step 1: Navigate to Webhooks in SalesIQ
+1. **Log in** to your SalesIQ account.
+2. Click on **Settings** in the sidebar.
+3. Scroll down and select **Webhooks**.
+
+## Step 2: Add a New Webhook
+4. Click **Add a New Data Modifications Webhook**.
+5. Select the **correct brand/organization** for which you want to configure the webhook.
+
+## Step 3: Configure the Webhook
+6. In the **URL to be invoked** field, **copy and paste** your Botpress webhook URL.
+
+## Step 4: Select Webhook Events
+7. Check the following events to be associated with the webhook:
+   - `conversation.attender.updated`
+   - `conversation.missed`
+   - `conversation.operator.replied`
+   - `conversation.completed`
+
+## Step 5: Save Your Webhook
+8. Click the **Create Webhook** button to finalize your webhook setup.
+
+**That's it!** Your webhook is now configured to send SalesIQ events to Botpress.
+
+

@@ -4,6 +4,10 @@ import fs from 'fs'
 import FormData from 'form-data'
 import sdk, { z } from '@botpress/sdk'
 
+import { IntegrationLogger } from '@botpress/sdk';
+
+const logger = new IntegrationLogger();
+
 // Define a Map for Zoho Data Centers
   const zohoAuthUrls = new Map<string, string>([
     ['us', 'https://accounts.zoho.com'],
@@ -14,8 +18,6 @@ import sdk, { z } from '@botpress/sdk'
     ['jp', 'https://accounts.zoho.jp'],
     ['ca', 'https://accounts.zohocloud.ca'],
   ]);
-
-  
 
 // Function to get the Zoho Auth URL
 const getZohoAuthUrl = (region: string): string => 
@@ -55,7 +57,7 @@ export class ZohoApi {
       });
 
       if (!state?.payload?.accessToken) {
-        console.error("No credentials found in state");
+        logger.forBot().error("No credentials found in state");
         return null;
       }
 
@@ -63,7 +65,7 @@ export class ZohoApi {
         accessToken: state.payload.accessToken,
       };
     } catch (error) {
-      console.error("Error retrieving credentials from state:", error);
+      logger.forBot().error("Error retrieving credentials from state:", error);
       return null;
     }
   }
@@ -72,7 +74,7 @@ export class ZohoApi {
     try {
       const creds = await this.getStoredCredentials();
       if (!creds) {
-        console.error("Error retrieving credentials.");
+        logger.forBot().error("Error retrieving credentials.");
         throw new Error("Error grabbing credentials.");
       }
   
@@ -80,12 +82,12 @@ export class ZohoApi {
         Authorization: `Bearer ${creds.accessToken}`,
         Accept: "application/json",
       };
-      console.log("accessToken", creds.accessToken);
+      logger.forBot().info("accessToken", creds.accessToken);
       if (method !== "GET" && method !== "DELETE") {
         headers["Content-Type"] = "application/json";
       }
-      console.log(`Making request to ${method} ${this.baseUrl}${endpoint}`);
-      console.log("Params:", params);
+      logger.forBot().info(`Making request to ${method} ${this.baseUrl}${endpoint}`);
+      logger.forBot().info("Params:", params);
 
       const response = await axios({
         method,
@@ -98,11 +100,11 @@ export class ZohoApi {
       return { success: true, message: "Request successful", data: response.data };
     } catch (error: any) {
       if (error.response?.status === 401) {
-        console.warn("Access token expired. Refreshing...", error);
+        logger.forBot().warn("Access token expired. Refreshing...", error);
         await this.refreshAccessToken();
         return this.makeRequest(endpoint, method, data, params);
       }
-      console.error(`Error in ${method} ${endpoint}:`, error.response?.data || error.message);
+      logger.forBot().error(`Error in ${method} ${endpoint}:`, error.response?.data || error.message);
       return { success: false, message: error.response?.data?.message || error.message, data: null };
     }
   }
@@ -111,27 +113,27 @@ export class ZohoApi {
     try {
       const creds = await this.getStoredCredentials();
       if (!creds) {
-        console.error("Error retrieving credentials.");
+        logger.forBot().error("Error retrieving credentials.");
         throw new Error("Error grabbing credentials.");
       }
   
       const headers = {
         Authorization: `Bearer ${creds.accessToken}`,
-        ...formData.getHeaders(), // ✅ Let FormData set the correct Content-Type
+        ...formData.getHeaders(), 
       };
   
-      console.log(`Uploading file to ${this.baseUrl}${endpoint}`);
+      logger.forBot().info(`Uploading file to ${this.baseUrl}${endpoint}`);
   
       const response = await axios.post(`${this.baseUrl}${endpoint}`, formData, { headers });
   
       return { success: true, message: "File uploaded successfully", data: response.data };
     } catch (error: any) {
       if (error.response?.status === 401) {
-        console.warn("Access token expired. Refreshing...", error);
+        logger.forBot().warn("Access token expired. Refreshing...", error);
         await this.refreshAccessToken();
-        return this.makeFileUploadRequest(endpoint, formData); // ✅ Retry with refreshed token
+        return this.makeFileUploadRequest(endpoint, formData); 
       }
-      console.error(`Error in file upload ${endpoint}:`, error.response?.data || error.message);
+      logger.forBot().error(`Error in file upload ${endpoint}:`, error.response?.data || error.message);
       return { success: false, message: error.response?.data?.message || error.message, data: null };
     }
   }
@@ -140,7 +142,7 @@ export class ZohoApi {
     try {
       const creds = await this.getStoredCredentials();
       if (!creds) {
-        console.error("Error retrieving credentials.");
+        logger.forBot().error("Error retrieving credentials.");
         throw new Error("Error grabbing credentials.");
       }
   
@@ -148,12 +150,12 @@ export class ZohoApi {
         Authorization: `Bearer ${creds.accessToken}`,
         Accept: "application/json",
       };
-      console.log("accessToken", creds.accessToken);
+      logger.forBot().info("accessToken", creds.accessToken);
       if (method !== "GET" && method !== "DELETE") {
         headers["Content-Type"] = "application/json";
       }
-      console.log(`Making request to ${method} ${endpoint}`);
-      console.log("Params:", params);
+      logger.forBot().info(`Making request to ${method} ${endpoint}`);
+      logger.forBot().info("Params:", params);
 
       const response = await axios({
         method,
@@ -166,23 +168,20 @@ export class ZohoApi {
       return { success: true, message: "Request successful", data: response.data };
     } catch (error: any) {
       if (error.response?.status === 401) {
-        console.warn("Access token expired. Refreshing...", error);
+        logger.forBot().warn("Access token expired. Refreshing...", error);
         await this.refreshAccessToken();
         return this.makeRequest(endpoint, method, data, params);
       }
-      console.error(`Error in ${method} ${endpoint}:`, error.response?.data || error.message);
+      logger.forBot().error(`Error in ${method} ${endpoint}:`, error.response?.data || error.message);
       return { success: false, message: error.response?.data?.message || error.message, data: null };
     }
   }
-  
-  /**
-   * Refreshes the access token using the refresh token.
-   */
+
   private async refreshAccessToken() {
     try {
       const creds = await this.getStoredCredentials();
       if (!creds) {
-        console.error("Error refreshing access token");
+        logger.forBot().error("Error refreshing access token");
         throw new Error("Error grabbing credentials.");
       }
 
@@ -207,10 +206,10 @@ export class ZohoApi {
         },
       });
 
-      console.info("Access token refreshed successfully.");
+      logger.forBot().info("Access token refreshed successfully.");
     } catch (error: unknown) {
       const err = error as AxiosError;
-      console.error("Error refreshing access token:", err.response?.data || err.message);
+      logger.forBot().error("Error refreshing access token:", err.response?.data || err.message);
       throw new Error("Authentication error. Please reauthorize the integration.");
     }
   }
@@ -230,13 +229,11 @@ export class ZohoApi {
 
   }
 
-  /** Makes a general API call */
   async makeApiCall(endpoint: string, method: string = "GET", data: any = null, rawParams: any = {}) {
     const params = JSON.parse(rawParams);
     return this.makeRequest(endpoint, method, data, params);
   }
 
-  /** Record Management */
   async insertRecord(module: string, rawData: string) {
     const data = JSON.parse(rawData);
     return this.makeRequest(`/crm/v7/${module}`, "POST", { data });
@@ -264,17 +261,14 @@ export class ZohoApi {
     return this.makeRequest(`/crm/v7/${module}/search`, "GET", null, { criteria });
   }
 
-  /** Organization and User Management */
   async getOrganizationDetails() {
     return this.makeRequest(`/crm/v7/org`, "GET");
   }
 
-  /** Get Users */
   async getUsers(rawParams?: string) {
     const params = rawParams ? JSON.parse(rawParams) : {};
     return this.makeRequest(`/crm/v7/users`, "GET", null, params);
   }
-
 
   async downloadFileBuffer(fileUrl: string): Promise<Blob> {
     try {
@@ -282,20 +276,17 @@ export class ZohoApi {
         responseType: 'arraybuffer',
       });
   
-      // Extract the content type from the response headers
       const contentType = response.headers['content-type'] || 'application/octet-stream';
-  
-      // Create and return a Blob from the response data
+
       return new Blob([response.data], { type: contentType });
     } catch (error) {
-      console.error('Error downloading the file:', error);
+      logger.forBot().error('Error downloading the file:', error);
       throw error;
     }
   }
 
-  // /** File Management */
   async uploadFile(fileUrl: string) {
-    console.error("FILE URL SHARK: ", fileUrl);
+    logger.forBot().error("FILE URL SHARK: ", fileUrl);
   
     try {
       const file = await this.downloadFileBuffer(fileUrl);
@@ -309,23 +300,20 @@ export class ZohoApi {
 
       return this.makeFileUploadRequest(`/crm/v7/files`, formData);
     } catch (error) {
-      console.error("Error uploading file:", error);
+      logger.forBot().error("Error uploading file:", error);
       throw error;
     }
   }
 
-  /** Get File */
   async getFile(fileId: string) {
     return this.makeRequest(`/crm/v7/files`, "GET", null, {id: fileId});
   }
 
-  /** Appointment Management */
   async getAppointments(rawParams: string = "{}") {
     const params = JSON.parse(rawParams);
     return this.makeRequest(`/crm/v7/Appointments__s`, "GET", null, params);
   }
 
-  /** Get Appointment by ID */
   async getAppointmentById(appointmentId: string) {
     return this.makeRequest(`/crm/v7/Appointments__s/${appointmentId}`);
   }
@@ -334,7 +322,6 @@ export class ZohoApi {
     const data = JSON.parse(rawData);
     return this.makeRequest(`/crm/v7/Appointments__s`, "POST", { data });
   }
-  
 
   async updateAppointment(appointmentId: string, rawData: string) {
     const data = JSON.parse(rawData);
@@ -345,14 +332,12 @@ export class ZohoApi {
     return this.makeRequest(`/crm/v7/Appointments__s/${appointmentId}`, "DELETE");
   }
 
-  /** Send Mail */
   async sendMail(module: string, recordId: string, rawData: string) {
     const data = JSON.parse(rawData);
     return this.makeRequest(`/crm/v7/${module}/${recordId}/actions/send_mail`, "POST", { data });
   }
 }
 
-/** Returns a new instance of ZohoApi */
 export const getClient = (
   accessToken: string,
   refreshToken: string,

@@ -27,7 +27,14 @@ export const makeApiCall: Implementation['actions']['makeApiCall'] = async ({ ct
       data: result.data
     }
   } catch (error) {
-    logger.forBot().debug(`'Make API Call' exception ${JSON.stringify(error)}`)
-    throw error
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
+    logger.forBot().error(`'Make API Call' exception ${JSON.stringify(error)}`)
+
+    return {
+      success: false,
+      message: errorMessage,
+      data: null,
+    };
   }
 }
