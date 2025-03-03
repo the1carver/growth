@@ -12,7 +12,6 @@ export type ZohoConfiguration = z.infer<typeof ZohoConfigurationSchema>
 export const ZohoConfigurationSchema = z.object({
     clientId: z.string().describe('Your Zoho Client ID'),
     clientSecret: z.string().describe('Your Zoho Client Secret'),
-    accessToken: z.string().describe('Your Zoho Access Token'),
     refreshToken: z.string().describe('Your Zoho Refresh Token'),
     screenName: z.string().describe('Your Zoho Screen Name'),
     appId: z.string().describe('To specify the portals app id of the brand.'),

@@ -24,7 +24,6 @@ const getZohoAuthUrl = (region: string): string =>
 const zohosalesiq_server_uri = "https://salesiq.zohocloud.ca"
 
 export class ZohoApi {
-  private accessToken: string;
   private refreshToken: string;
   private clientId: string;
   private clientSecret: string;
@@ -33,8 +32,7 @@ export class ZohoApi {
   private ctx: bp.Context;
   private bpClient: bp.Client;
 
-  constructor(accessToken: string, refreshToken: string, clientId: string, clientSecret: string, dataCenter: string, ctx: bp.Context, bpClient: bp.Client) {
-    this.accessToken = accessToken;
+  constructor(refreshToken: string, clientId: string, clientSecret: string, dataCenter: string, ctx: bp.Context, bpClient: bp.Client) {
     this.refreshToken = refreshToken;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
@@ -120,17 +118,8 @@ export class ZohoApi {
     }
   }
   
-  private async refreshAccessToken() {
+  async refreshAccessToken() {
     try {
-      const creds = await this.getStoredCredentials();
-      
-      if (!creds) {
-        logger.forBot().error("Error refreshing access token");
-        throw new bpclient.RuntimeError(
-          "Error grabbing credentials."
-        );
-      }
-
       const requestData = new URLSearchParams();
       requestData.append("client_id", this.clientId);
       requestData.append("client_secret", this.clientSecret);
@@ -211,7 +200,6 @@ export class ZohoApi {
 }
 
 export const getClient = (
-  accessToken: string,
   refreshToken: string,
   clientId: string,
   clientSecret: string,
@@ -219,5 +207,5 @@ export const getClient = (
   ctx: bp.Context,
   bpClient: bp.Client
 ) => {
-  return new ZohoApi(accessToken, refreshToken, clientId, clientSecret, dataCenter, ctx, bpClient);
+  return new ZohoApi(refreshToken, clientId, clientSecret, dataCenter, ctx, bpClient);
 };

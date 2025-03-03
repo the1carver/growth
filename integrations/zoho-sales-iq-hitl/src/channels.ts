@@ -6,7 +6,6 @@ export const channels = {
     messages: {
       text: async ({ client, ctx, conversation, logger, ...props }: bp.AnyMessageProps) => {
         const zohoClient = getClient(
-            ctx.configuration.accessToken,
             ctx.configuration.refreshToken,
             ctx.configuration.clientId,
             ctx.configuration.clientSecret,
