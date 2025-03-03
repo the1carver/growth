@@ -14,6 +14,15 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
       client
     );
 
+    await client.setState({
+      id: ctx.integrationId,
+      type: "integration",
+      name: 'credentials',
+      payload: {
+        accessToken: ctx.configuration.accessToken,
+      }
+    });
+
     // Validate Zoho Configuration
     const appResponse = await zohoClient.getApp();
 
@@ -25,15 +34,6 @@ export const register: RegisterFunction = async ({ ctx, client, logger }) => {
     }
 
     logger.info("Zoho configuration validated successfully.");
-
-    await client.setState({
-      id: ctx.integrationId,
-      type: "integration",
-      name: 'credentials',
-      payload: {
-        accessToken: ctx.configuration.accessToken,
-      }
-    });
 
   } catch (error) {
     logger.error("Error during integration registration:", error);
