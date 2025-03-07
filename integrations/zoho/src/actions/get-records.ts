@@ -7,7 +7,6 @@ export const getRecords: Implementation['actions']['getRecords'] = async ({ ctx,
   const params = validatedInput.params ?? "{}"; // Default to empty JSON if no params provided
 
   const zohoClient = getClient(
-    ctx.configuration.accessToken,
     ctx.configuration.refreshToken,
     ctx.configuration.clientId,
     ctx.configuration.clientSecret,

@@ -7,7 +7,6 @@ export const getUsers: Implementation['actions']['getUsers'] = async ({ ctx, cli
   const params = validatedInput.params ?? "{}"; // Ensure params is always a valid JSON string
 
   const zohoClient = getClient(
-    ctx.configuration.accessToken,
     ctx.configuration.refreshToken,
     ctx.configuration.clientId,
     ctx.configuration.clientSecret,

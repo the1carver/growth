@@ -34,7 +34,6 @@ export default new IntegrationDefinition({
     schema: z.object({
       clientId: z.string().describe('Your Zoho Client ID'),
       clientSecret: z.string().describe('Your Zoho Client Secret'),
-      accessToken: z.string().describe('Your Zoho Access Token'),
       refreshToken: z.string().describe('Your Zoho Refresh Token'),
       dataCenter: z.enum(['us', 'eu', 'in', 'au', 'cn', 'jp', 'ca']).describe('Zoho Data Center Region'),
     }),

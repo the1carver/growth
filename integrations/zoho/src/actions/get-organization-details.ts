@@ -6,7 +6,6 @@ export const getOrganizationDetails: Implementation['actions']['getOrganizationD
   const validatedInput = emptyInputSchema.parse({});
 
   const zohoClient = getClient(
-    ctx.configuration.accessToken,
     ctx.configuration.refreshToken,
     ctx.configuration.clientId,
     ctx.configuration.clientSecret,

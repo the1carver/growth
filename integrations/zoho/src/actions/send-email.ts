@@ -6,7 +6,6 @@ export const sendMail: Implementation['actions']['sendMail'] = async ({ ctx, cli
   const validatedInput = sendMailInputSchema.parse(input);
 
   const zohoClient = getClient(
-    ctx.configuration.accessToken,
     ctx.configuration.refreshToken,
     ctx.configuration.clientId,
     ctx.configuration.clientSecret,
