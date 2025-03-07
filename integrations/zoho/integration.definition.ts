@@ -24,8 +24,8 @@ import {
 
 export default new IntegrationDefinition({
   name: integrationName ?? 'zoho',
-  version: '1.0.0',
-  title: 'Zoho',
+  version: '3.0.0',
+  title: 'Zoho (Deprecated)',
   readme: 'hub.md',
   icon: 'icon.svg',
   description:
