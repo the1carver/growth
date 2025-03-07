@@ -6,7 +6,6 @@ export const searchRecords: Implementation['actions']['searchRecords'] = async (
   const validatedInput = searchRecordsInputSchema.parse(input);
 
   const zohoClient = getClient(
-    ctx.configuration.accessToken,
     ctx.configuration.refreshToken,
     ctx.configuration.clientId,
     ctx.configuration.clientSecret,

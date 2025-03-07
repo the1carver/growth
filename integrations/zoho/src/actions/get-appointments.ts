@@ -7,7 +7,6 @@ export const getAppointments: Implementation['actions']['getAppointments'] = asy
   const params = validatedInput.params ?? "{}";
 
   const zohoClient = getClient(
-    ctx.configuration.accessToken,
     ctx.configuration.refreshToken,
     ctx.configuration.clientId,
     ctx.configuration.clientSecret,
