@@ -43,7 +43,6 @@ export const actions = {
     description: 'Sync BigCommerce products to Botpress table',
     input: {
       schema: z.object({
-        forceSync: z.boolean().optional().default(false).describe('Force sync even if not scheduled'),
       }),
     },
     output: {

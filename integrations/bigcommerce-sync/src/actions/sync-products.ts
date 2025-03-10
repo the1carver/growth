@@ -3,32 +3,11 @@ import { getBigCommerceClient } from '../client'
 
 const syncProducts = async ({ 
   ctx, 
-  client, 
-  input 
+  client
 }: any) => {
   const bigCommerceClient = getBigCommerceClient(ctx.configuration)
-  const { forceSync } = input
   
   try {
-    // Check if we need to sync based on the schedule
-    const syncState = await client.getState({
-      type: 'integration',
-      name: 'syncInfo',
-      id: ctx.integrationId,
-    })
-    
-    const lastSyncTime = syncState?.lastSyncTime ? new Date(syncState.lastSyncTime) : null
-    const now = new Date()
-    const syncIntervalMs = ctx.configuration.syncInterval * 60 * 1000
-    
-    if (!forceSync && lastSyncTime && (now.getTime() - lastSyncTime.getTime() < syncIntervalMs)) {
-      return {
-        success: true,
-        productCount: syncState?.productCount || 0,
-        error: 'Sync skipped - not scheduled yet',
-      }
-    }
-    
     // Get products from BigCommerce
     const response = await bigCommerceClient.getProducts({
       limit: 250,
@@ -66,7 +45,7 @@ const syncProducts = async ({
         weight: product.weight,
         image_url: product.images?.[0]?.url_standard || '',
         page_url: product.custom_url?.url || '',
-        last_sync: now.toISOString(),
+        last_sync: new Date().toISOString(),
       }
       
       if (existingProductIds.has(product.id.toString())) {
@@ -93,7 +72,7 @@ const syncProducts = async ({
       name: 'syncInfo',
       id: ctx.integrationId,
       payload: {
-        lastSyncTime: now.toISOString(),
+        lastSyncTime: new Date().toISOString(),
         lastSyncStatus: 'success',
         productCount: products.length,
       },
