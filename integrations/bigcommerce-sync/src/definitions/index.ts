@@ -12,12 +12,6 @@ export const configuration = {
         description: 'BigCommerce API Access Token',
       })
       .min(1),
-    syncInterval: z
-      .number({
-        description: 'How often to sync products (in minutes)',
-      })
-      .min(5)
-      .default(60),
     targetTableId: z
       .string({
         description: 'ID of the Botpress table where products will be stored',

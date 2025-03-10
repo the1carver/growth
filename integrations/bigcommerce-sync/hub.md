@@ -26,8 +26,7 @@ Sync your BigCommerce products to a Botpress table for use in your bots and work
 
 1. Enter your BigCommerce Store Hash
 2. Enter your API Access Token
-3. Set the sync interval (in minutes)
-4. Create a Botpress table with the following fields:
+3. Create a Botpress table with the following fields:
    - product_id (Text)
    - name (Text)
    - sku (Text)
@@ -42,11 +41,11 @@ Sync your BigCommerce products to a Botpress table for use in your bots and work
    - image_url (Text)
    - page_url (Text)
    - last_sync (Text)
-5. Enter the ID of your Botpress table
+4. Enter the ID of your Botpress table
 
 ## Usage
 
-The integration will automatically sync products based on your configured interval. You can also manually trigger a sync using the "Sync Products" action.
+The integration provides a "Sync Products" action that you can use to manually sync your BigCommerce products to your Botpress table. Add this action to your bot flow wherever you want to trigger a sync.
 
 ### Available Actions
 
