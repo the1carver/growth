@@ -43,6 +43,7 @@ export class ZohoApi {
   private dataCenter: string;
   private ctx: bp.Context;
   private bpClient: bp.Client;
+  private zohoSalesIqServerURI:string;
 
   constructor(refreshToken: string, clientId: string, clientSecret: string, dataCenter: string, ctx: bp.Context, bpClient: bp.Client) {
     this.refreshToken = refreshToken;
@@ -51,6 +52,7 @@ export class ZohoApi {
     this.dataCenter = dataCenter;
     this.ctx = ctx;
     this.bpClient = bpClient;
+    this.zohoSalesIqServerURI = getZohoSalesIQUrl(this.dataCenter)
   }
 
   async getStoredCredentials(): Promise<{ accessToken: string } | null> {
@@ -164,7 +166,7 @@ export class ZohoApi {
   }
 
   public async createConversation(name: string, email: string, title: string, description: string): Promise<any> {
-    const { data } = await this.makeHitlRequest(`${getZohoSalesIQUrl(this.dataCenter)}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations`, "POST", {
+    const { data } = await this.makeHitlRequest(`${this.zohoSalesIqServerURI}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations`, "POST", {
       "visitor": {
         "user_id": email,
         "name": name,
@@ -179,7 +181,7 @@ export class ZohoApi {
   }
 
   public async sendMessage(conversationId: string, message: string) {
-    const endpoint = `${getZohoSalesIQUrl(this.dataCenter)}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations/${conversationId}/messages`;
+    const endpoint = `${this.zohoSalesIqServerURI}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations/${conversationId}/messages`;
 
     const payload = { text: message };
 
@@ -200,12 +202,12 @@ export class ZohoApi {
   }
 
   public async getApp(): Promise<any> {
-    const { data } = await this.makeHitlRequest(`${getZohoSalesIQUrl(this.dataCenter)}/api/v2/${this.ctx.configuration.screenName}/apps/${this.ctx.configuration.appId}`);
+    const { data } = await this.makeHitlRequest(`${this.zohoSalesIqServerURI}/api/v2/${this.ctx.configuration.screenName}/apps/${this.ctx.configuration.appId}`);
     return data
   }
 
   public async getDepartment(): Promise<any> {
-    const { data } = await this.makeHitlRequest(`${getZohoSalesIQUrl(this.dataCenter)}/api/v2/${this.ctx.configuration.screenName}/departments/${this.ctx.configuration.departmentId}`);
+    const { data } = await this.makeHitlRequest(`${this.zohoSalesIqServerURI}/api/v2/${this.ctx.configuration.screenName}/departments/${this.ctx.configuration.departmentId}`);
     return data
   }
 }
