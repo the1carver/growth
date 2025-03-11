@@ -17,18 +17,30 @@ const zohoAuthUrls = new Map<string, string>([
   ['ca', 'https://accounts.zohocloud.ca'],
 ]);
 
+// Define a Map for Zoho SalesIQ Server URIs
+const zohoSalesIQUrls = new Map<string, string>([
+  ['us', 'https://salesiq.zoho.com'],
+  ['ca', 'https://salesiq.zohocloud.ca'],
+  ['eu', 'https://salesiq.zoho.eu'],
+  ['in', 'https://salesiq.zoho.in'],
+  ['au', 'https://salesiq.zoho.com.au'],
+  ['cn', 'https://salesiq.zoho.com.cn'],
+  ['jp', 'https://salesiq.zoho.jp'],
+]);
+
 // Function to get the Zoho Auth URL
 const getZohoAuthUrl = (region: string): string => 
   zohoAuthUrls.get(region) ?? "https://accounts.zoho.ca";
 
-const zohosalesiq_server_uri = "https://salesiq.zohocloud.ca"
+// Function to get the Zoho SalesIQ Server URL
+const getZohoSalesIQUrl = (region: string): string => 
+  zohoSalesIQUrls.get(region) ?? "https://salesiq.zoho.com"; // Default to US if region not found
 
 export class ZohoApi {
   private refreshToken: string;
   private clientId: string;
   private clientSecret: string;
   private dataCenter: string;
-  private baseUrl: string;
   private ctx: bp.Context;
   private bpClient: bp.Client;
 
@@ -39,7 +51,6 @@ export class ZohoApi {
     this.dataCenter = dataCenter;
     this.ctx = ctx;
     this.bpClient = bpClient;
-    this.baseUrl = `https://www.zohoapis.${dataCenter}`;
   }
 
   async getStoredCredentials(): Promise<{ accessToken: string } | null> {
@@ -131,7 +142,7 @@ export class ZohoApi {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      logger.forBot().error(response);
+      logger.forBot().info(response);
 
       await this.bpClient.setState({
         id: this.ctx.integrationId,
@@ -153,7 +164,7 @@ export class ZohoApi {
   }
 
   public async createConversation(name: string, email: string, title: string, description: string): Promise<any> {
-    const { data } = await this.makeHitlRequest(`${zohosalesiq_server_uri}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations`, "POST", {
+    const { data } = await this.makeHitlRequest(`${getZohoSalesIQUrl(this.dataCenter)}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations`, "POST", {
       "visitor": {
         "user_id": email,
         "name": name,
@@ -168,7 +179,7 @@ export class ZohoApi {
   }
 
   public async sendMessage(conversationId: string, message: string) {
-    const endpoint = `${zohosalesiq_server_uri}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations/${conversationId}/messages`;
+    const endpoint = `${getZohoSalesIQUrl(this.dataCenter)}/api/visitor/v1/${this.ctx.configuration.screenName}/conversations/${conversationId}/messages`;
 
     const payload = { text: message };
 
@@ -189,12 +200,12 @@ export class ZohoApi {
   }
 
   public async getApp(): Promise<any> {
-    const { data } = await this.makeHitlRequest(`${zohosalesiq_server_uri}/api/v2/${this.ctx.configuration.screenName}/apps/${this.ctx.configuration.appId}`);
+    const { data } = await this.makeHitlRequest(`${getZohoSalesIQUrl(this.dataCenter)}/api/v2/${this.ctx.configuration.screenName}/apps/${this.ctx.configuration.appId}`);
     return data
   }
 
   public async getDepartment(): Promise<any> {
-    const { data } = await this.makeHitlRequest(`${zohosalesiq_server_uri}/api/v2/${this.ctx.configuration.screenName}/departments/${this.ctx.configuration.departmentId}`);
+    const { data } = await this.makeHitlRequest(`${getZohoSalesIQUrl(this.dataCenter)}/api/v2/${this.ctx.configuration.screenName}/departments/${this.ctx.configuration.departmentId}`);
     return data
   }
 }
