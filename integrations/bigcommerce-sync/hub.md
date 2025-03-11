@@ -1,6 +1,6 @@
-# BigCommerce Product Sync
+# BigCommerce Integration
 
-Sync your BigCommerce products to a Botpress table for use in your bots and workflows.
+Connect your BigCommerce store to Botpress to access product information and make API calls.
 
 ## Installation and Configuration
 
@@ -8,7 +8,6 @@ Sync your BigCommerce products to a Botpress table for use in your bots and work
 
 1. A BigCommerce store
 2. API credentials with appropriate permissions
-3. A Botpress table to store product data
 
 ### Getting BigCommerce API Credentials
 
@@ -26,30 +25,13 @@ Sync your BigCommerce products to a Botpress table for use in your bots and work
 
 1. Enter your BigCommerce Store Hash
 2. Enter your API Access Token
-3. Create a Botpress table with the following fields:
-   - product_id (Text)
-   - name (Text)
-   - sku (Text)
-   - price (Number)
-   - sale_price (Number)
-   - description (Text)
-   - is_visible (Boolean)
-   - inventory_level (Number)
-   - categories (Text)
-   - brand_id (Text)
-   - weight (Number)
-   - image_url (Text)
-   - page_url (Text)
-   - last_sync (Text)
-4. Enter the ID of your Botpress table
 
 ## Usage
 
-The integration provides a "Sync Products" action that you can use to manually sync your BigCommerce products to your Botpress table. Add this action to your bot flow wherever you want to trigger a sync.
+The integration provides actions to retrieve product information and make custom API calls to BigCommerce.
 
 ### Available Actions
 
-- **Sync Products**: Manually trigger a product sync
 - **Get Product**: Retrieve a specific product by ID
 - **Call API**: Make custom API calls to BigCommerce
 
@@ -59,5 +41,4 @@ If you encounter issues with the integration:
 
 1. Verify your API credentials are correct
 2. Check that your API account has the necessary permissions
-3. Ensure your Botpress table exists and has the correct structure
-4. Check the integration logs for specific error messages
+3. Check the integration logs for specific error messages

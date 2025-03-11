@@ -12,41 +12,13 @@ export const configuration = {
         description: 'BigCommerce API Access Token',
       })
       .min(1),
-    targetTableId: z
-      .string({
-        description: 'ID of the Botpress table where products will be stored',
-      })
-      .min(1),
   }),
 } satisfies IntegrationDefinitionProps['configuration']
 
 export const states = {
-  syncInfo: {
-    type: 'integration',
-    schema: z.object({
-      lastSyncTime: z.string().optional(),
-      lastSyncStatus: z.string().optional(),
-      productCount: z.number().optional(),
-    }),
-  },
 } satisfies IntegrationDefinitionProps['states']
 
 export const actions = {
-  syncProducts: {
-    title: 'Sync Products',
-    description: 'Sync BigCommerce products to Botpress table',
-    input: {
-      schema: z.object({
-      }),
-    },
-    output: {
-      schema: z.object({
-        success: z.boolean(),
-        productCount: z.number().optional(),
-        error: z.string().optional(),
-      }),
-    },
-  },
   getProduct: {
     title: 'Get Product',
     description: 'Get a specific product from BigCommerce',
