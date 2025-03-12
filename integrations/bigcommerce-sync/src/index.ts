@@ -131,47 +131,122 @@ export default new bp.Integration({
     if (req.method === 'POST') {
       logger.forBot().info('Received webhook from BigCommerce')
       
-      try {
-        // Verify this is a product-related webhook
-        const eventHeader = req.headers['x-bc-webhook-event-type']
-        if (eventHeader && 
-            (eventHeader.includes('product/created') || 
-             eventHeader.includes('product/updated') || 
-             eventHeader.includes('product/deleted'))) {
+      // Common function to run product sync with better error handling
+      const runProductSync = async () => {
+        try {
+          logger.forBot().info('Starting product sync...');
           
-          logger.forBot().info(`Processing ${eventHeader} webhook`)
+          // Get BigCommerce client directly
+          const bigCommerceClient = getBigCommerceClient(ctx.configuration);
           
-          // Trigger the sync products action to update our product table
-          await actions.syncProducts({
-            ctx,
-            client,
-            logger,
-            input: {}
-          })
+          // Initialize vanillaClient for direct table access
+          const vanillaClient = getVanillaClient(client);
           
-          return {
-            status: 200,
-            body: JSON.stringify({ 
-              success: true, 
-              message: 'Webhook processed successfully' 
-            })
+          // First, try to use the actions.syncProducts function
+          if (typeof actions.syncProducts === 'function') {
+            logger.forBot().info('Using actions.syncProducts function');
+            return await actions.syncProducts({
+              ctx,
+              client,
+              logger,
+              input: {},
+            });
+          } else {
+            // Fallback: Implement sync directly (simplified version)
+            logger.forBot().warn('actions.syncProducts not found, using direct implementation');
+            
+            // Fetch products directly
+            const response = await bigCommerceClient.getProducts();
+            const products = response.data;
+            
+            if (!products || products.length === 0) {
+              logger.forBot().warn('No products found in BigCommerce store');
+              return {
+                success: true,
+                message: 'No products found in BigCommerce store',
+                productsCount: 0,
+              };
+            }
+            
+            // Get table schema (simplified)
+            const tableRows = products.map((product: any) => ({
+              product_id: product.id,
+              name: product.name,
+              // Add other fields as needed
+            }));
+            
+            // Clear existing products
+            try {
+              const { rows } = await vanillaClient.findTableRows({
+                table: 'bigcommerce_products_Table',
+                limit: 1000,
+              });
+              
+              if (rows.length > 0) {
+                await vanillaClient.deleteTableRows({
+                  table: 'bigcommerce_products_Table',
+                  ids: rows.map(row => row.id),
+                });
+              }
+            } catch (error) {
+              logger.forBot().warn('Error clearing existing products', error);
+            }
+            
+            // Insert new products
+            await vanillaClient.createTableRows({
+              table: 'bigcommerce_products_Table',
+              rows: tableRows,
+            });
+            
+            return {
+              success: true,
+              message: `Successfully synced ${products.length} products from BigCommerce`,
+              productsCount: products.length,
+            };
           }
+        } catch (syncError) {
+          logger.forBot().error('Error in product sync:', syncError);
+          return {
+            success: false,
+            message: `Error syncing products: ${syncError instanceof Error ? syncError.message : String(syncError)}`,
+            error: syncError,
+          };
         }
+      };
+      
+      try {
+        // Log the full request headers and body for debugging
+        logger.forBot().info('Webhook headers:', JSON.stringify(req.headers))
+        
+        // Check if this is a BigCommerce webhook by looking for characteristic headers
+        const isBigCommerceWebhook = Object.keys(req.headers).some(key => 
+          key.toLowerCase().includes('bigcommerce') || 
+          key.toLowerCase().includes('bc-webhook')
+        );
+        
+        logger.forBot().info(`Is BigCommerce webhook based on headers: ${isBigCommerceWebhook}`);
+        
+        // Webhook detected, proceed with sync regardless of event type
+        // This ensures any BigCommerce webhook will trigger a sync
+        const result = await runProductSync();
+        
+        logger.forBot().info('Product sync completed with result:', JSON.stringify(result));
         
         return {
           status: 200,
           body: JSON.stringify({
-            success: true, 
-            message: 'Webhook received but not processed (not a product event)'
+            success: result.success,
+            message: 'BigCommerce webhook processed',
+            syncResult: result
           })
-        }
+        };
       } catch (error) {
         logger.forBot().error('Error processing webhook:', error)
         return {
           status: 500,
           body: JSON.stringify({
             success: false, 
-            message: 'Error processing webhook'
+            message: `Error processing webhook: ${error instanceof Error ? error.message : String(error)}`
           })
         }
       }
