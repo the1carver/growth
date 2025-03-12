@@ -45,9 +45,65 @@ export default new bp.Integration({
       
       // Initialize the products table
       await vanillaClient.getOrCreateTable({
-        table: 'BigCommerce_Products',
+        table: 'bigcommerce_products_Table',
         schema: productsTableSchema,
       })
+      
+      // After creating the table, sync products automatically
+      logger.forBot().info('Syncing BigCommerce products...')
+      
+      try {
+        // Get BigCommerce client
+        const bigCommerceClient = getBigCommerceClient(ctx.configuration)
+        
+        // Fetch products from BigCommerce
+        const response = await bigCommerceClient.getProducts()
+        const products = response.data
+        
+        // Transform products for table insertion
+        const tableRows = products.map((product: any) => {
+          // Extract categories as a comma-separated string
+          const categories = product.categories?.join(',') || ''
+          
+          // Get primary image URL if available
+          const imageUrl = product.images && product.images.length > 0 
+            ? product.images[0].url_standard 
+            : ''
+            
+          return {
+            product_id: product.id,
+            name: product.name,
+            sku: product.sku,
+            price: product.price,
+            sale_price: product.sale_price,
+            retail_price: product.retail_price,
+            cost_price: product.cost_price,
+            weight: product.weight,
+            type: product.type,
+            inventory_level: product.inventory_level,
+            inventory_tracking: product.inventory_tracking,
+            brand_id: product.brand_id,
+            categories: categories,
+            availability: product.availability,
+            condition: product.condition,
+            is_visible: product.is_visible,
+            sort_order: product.sort_order,
+            description: product.description?.substring(0, 1000) || '',
+            image_url: imageUrl,
+            url: product.custom_url?.url || '',
+          }
+        })
+        
+        // Insert rows into the table
+        await vanillaClient.createTableRows({
+          table: 'bigcommerce_products_Table',
+          rows: tableRows,
+        })
+        
+        logger.forBot().info(`Successfully synced ${products.length} products from BigCommerce`)
+      } catch (syncError) {
+        logger.forBot().error('Error syncing products during initialization', syncError)
+      }
       
       logger.forBot().info('BigCommerce integration registered successfully')
     } catch (error) {

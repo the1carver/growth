@@ -16,8 +16,12 @@ const syncProducts = async ({
   const bigCommerceClient = getBigCommerceClient(ctx.configuration)
   
   try {
-    // Define the table name
-    const tableName = 'BigCommerce_Products'
+    // Define the table name - ensure it follows all validation rules:
+    // - Cannot start with a number
+    // - Must be 30 characters or less
+    // - Can only contain letters, numbers, and underscores
+    // - Must end with 'Table'
+    const tableName = 'bigcommerce_products_Table'
     
     // Define schema for the products table (max 20 columns)
     const tableSchema = {
@@ -54,8 +58,18 @@ const syncProducts = async ({
     })
     
     // Fetch products from BigCommerce
+    logger.forBot().info('Fetching products from BigCommerce...')
     const response = await bigCommerceClient.getProducts()
     const products = response.data
+    
+    if (!products || products.length === 0) {
+      logger.forBot().warn('No products found in BigCommerce store')
+      return {
+        success: true,
+        message: 'No products found in BigCommerce store',
+        productsCount: 0,
+      }
+    }
     
     // Transform products for table insertion
     // Only include fields that match our schema (max 20 columns)
@@ -94,6 +108,7 @@ const syncProducts = async ({
     
     // Delete existing rows to ensure fresh data
     try {
+      logger.forBot().info('Clearing existing products...')
       const { rows } = await vanillaClient.findTableRows({
         table: tableName,
         limit: 1000, // max limit
@@ -108,9 +123,11 @@ const syncProducts = async ({
     } catch (error) {
       // Table might be empty or not exist yet
       logger.forBot().warn('Error clearing existing products', error)
+      // Continue with the sync process anyway
     }
     
     // Insert new rows
+    logger.forBot().info(`Inserting ${tableRows.length} products...`)
     await vanillaClient.createTableRows({
       table: tableName,
       rows: tableRows,

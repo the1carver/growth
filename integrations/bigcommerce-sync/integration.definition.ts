@@ -4,7 +4,7 @@ import { configuration, states, actions } from './src/definitions/index'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: '0.1.0',
+  version: '0.1.1',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration,

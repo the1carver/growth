@@ -1,28 +1,25 @@
 Todo list for the BigCommerce integration
 
-Upon successfully configuring the integration (access token and store hash), the integration must:
+Problem Description:
+I installed the BigCommerce integration on a test bot and configured the access token and store hash.
 
-- [x] Get all products from BigCommerce
-- [x] Create a new Table in Botpress that contains all of the products
+However, the integration did not automatically create a table in the bot that contains all of the products from
+my bigcommerce store.
 
-Implementation summary:
-1. Added a new `syncProducts` action that fetches all products from BigCommerce and stores them in a Botpress table
-2. Implemented table initialization in the integration's register function
-3. Created proper table schema with the most important product fields (limited to 20 columns as required)
-4. Added proper error handling and logging
+I then tried to manually create the table using Sync Products action and stored the output in a workflow variable.
+When printing the variable, I see the following:
+```
+{
+"success": false,
+"message": "Error syncing products: Validation Error: Table name cannot start with a number, must be 30 characters or less, can contain only letters, numbers, and underscores, and end with 'Table'",
+"productsCount": 0
+}
+```
 
-Important Notes for the implementation:
-- Tables in Botpress can hold a max of 20 columns (only keep the 20 most important columns ex: product_id, name, sku, price, image url, etc...)
-- To add a table / update a table in botpress, you must do the following: (IMPORTANT: IT NEEDS TO BE DONE THIS WAY OR ELSE IT WILL NOT WORK):
-    1. import the vanilla client import { Client } from '@botpress/client'
-    2. in your action / handler, get the vanilla client like this const vanillaClient = (props.client as any)._client as Client
-    afterwards, all table operations can be done (createTable, updateTable, createTableRows, etc...)
-    Examples of this can be found in the agi-improvement-master folder in the integration folder.
+Fix the issue. Make the table be created on initialization of the integration and sync products should
+not be needed but if it is, it should not fail. [x]
 
-Usage instructions:
-1. Configure the BigCommerce integration with your store hash and access token
-2. Use the "Sync Products" action to fetch all products and store them in the Botpress table
-3. You can then use the table data in your bot flows, for example to display product information or create product catalogs
 
-bp build to build and bp deploy to deploy
+
+
 
