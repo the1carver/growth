@@ -54,6 +54,45 @@ export class BigCommerceClient {
     }
   }
 
+  async createWebhook(scope: string, destination: string) {
+    try {
+      const response = await this.client.post(`${this.baseUrl}/v3/hooks`, {
+        scope,
+        destination,
+        is_active: true,
+        headers: {}
+      })
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async createProductWebhooks(destination: string) {
+    if (!destination) {
+      throw new Error('Webhook destination URL is required')
+    }
+    
+    const webhookEvents = [
+      'store/product/updated',
+      'store/product/created',
+      'store/product/deleted'
+    ]
+    
+    const results = []
+    
+    for (const event of webhookEvents) {
+      try {
+        const result = await this.createWebhook(event, destination)
+        results.push({ event, success: true, data: result })
+      } catch (error) {
+        results.push({ event, success: false, error: error instanceof Error ? error.message : String(error) })
+      }
+    }
+    
+    return results
+  }
+
   private handleError(error: any) {
     if (axios.isAxiosError(error)) {
       const message = error.response?.data?.message || error.message

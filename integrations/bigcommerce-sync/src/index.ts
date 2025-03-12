@@ -101,6 +101,19 @@ export default new bp.Integration({
         })
         
         logger.forBot().info(`Successfully synced ${products.length} products from BigCommerce`)
+        
+        // Create webhooks if webhook URL is available
+        if (ctx.webhookId) {
+          // Format the complete webhook URL with the proper prefix
+          const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`;
+          logger.forBot().info(`Setting up BigCommerce webhooks to: ${webhookUrl}`)
+          try {
+            const webhookResults = await bigCommerceClient.createProductWebhooks(webhookUrl)
+            logger.forBot().info('Webhook creation results:', webhookResults)
+          } catch (webhookError) {
+            logger.forBot().error('Error creating webhooks:', webhookError)
+          }
+        }
       } catch (syncError) {
         logger.forBot().error('Error syncing products during initialization', syncError)
       }
@@ -113,5 +126,63 @@ export default new bp.Integration({
   unregister: async () => {},
   actions,
   channels: {},
-  handler: async () => {},
+  handler: async ({ req, client, ctx, logger }) => {
+    // Handle incoming webhook requests
+    if (req.method === 'POST') {
+      logger.forBot().info('Received webhook from BigCommerce')
+      
+      try {
+        // Verify this is a product-related webhook
+        const eventHeader = req.headers['x-bc-webhook-event-type']
+        if (eventHeader && 
+            (eventHeader.includes('product/created') || 
+             eventHeader.includes('product/updated') || 
+             eventHeader.includes('product/deleted'))) {
+          
+          logger.forBot().info(`Processing ${eventHeader} webhook`)
+          
+          // Trigger the sync products action to update our product table
+          await actions.syncProducts({
+            ctx,
+            client,
+            logger,
+            input: {}
+          })
+          
+          return {
+            status: 200,
+            body: JSON.stringify({ 
+              success: true, 
+              message: 'Webhook processed successfully' 
+            })
+          }
+        }
+        
+        return {
+          status: 200,
+          body: JSON.stringify({
+            success: true, 
+            message: 'Webhook received but not processed (not a product event)'
+          })
+        }
+      } catch (error) {
+        logger.forBot().error('Error processing webhook:', error)
+        return {
+          status: 500,
+          body: JSON.stringify({
+            success: false, 
+            message: 'Error processing webhook'
+          })
+        }
+      }
+    }
+    
+    return {
+      status: 405,
+      body: JSON.stringify({
+        success: false, 
+        message: 'Method not allowed'
+      })
+    }
+  },
 }) 
