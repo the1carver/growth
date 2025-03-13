@@ -2,6 +2,7 @@ import { Client } from '@botpress/client'
 import * as bp from '.botpress'
 import { z } from '@botpress/sdk'
 import { getBigCommerceClient } from '../client'
+import { productsTableSchema, productsTableName } from '../schemas/products'
 
 const syncProducts = async ({ 
   ctx, 
@@ -26,35 +27,10 @@ const syncProducts = async ({
     Also, it must end with 'Table'.
     (you should have better logging than I did when building this to catch this early)
     */
-    const tableName = 'bigcommerce_products_Table'
+    const tableName = productsTableName
     
     // Note: max 20 columns per botpress table.
-    const tableSchema = {
-      type: 'object',
-      properties: {
-        product_id: { type: 'number', 'x-zui': { searchable: true } },
-        name: { type: 'string', 'x-zui': { searchable: true } },
-        sku: { type: 'string', 'x-zui': { searchable: true } },
-        price: { type: 'number' },
-        sale_price: { type: 'number' },
-        retail_price: { type: 'number' },
-        cost_price: { type: 'number' },
-        weight: { type: 'number' },
-        type: { type: 'string' },
-        inventory_level: { type: 'number' },
-        inventory_tracking: { type: 'string' },
-        brand_id: { type: 'number' },
-        categories: { type: 'string' },
-        availability: { type: 'string' },
-        condition: { type: 'string' },
-        is_visible: { type: 'boolean' },
-        sort_order: { type: 'number' },
-        description: { type: 'string' },
-        image_url: { type: 'string' },
-        url: { type: 'string' },
-      },
-      required: ['product_id', 'name'],
-    }
+    const tableSchema = productsTableSchema
     
     // As you can see, we can use the getOrCreateTable operation from botpress after using vanillaClient.
     await vanillaClient.getOrCreateTable({
