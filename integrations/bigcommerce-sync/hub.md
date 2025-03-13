@@ -4,6 +4,9 @@ Connect your BigCommerce store to Botpress to sync products from BigCommerce to 
 
 ## Installation and Configuration
 
+### **[Walkthrough video for setting up the BigCommerce Integration](https://youtu.be/3Y_WlvMT8AA)** ###
+
+
 ### Prerequisites
 
 1. A BigCommerce store with products

@@ -1,6 +1,6 @@
 {
   "name": "@bp-templates/empty-integration",
-  "integrationName": "testingwindows/bigcommerce",
+  "integrationName": "plus/bigcommerce",
   "scripts": {
     "check:type": "tsc --noEmit"
   },
