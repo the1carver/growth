@@ -3,7 +3,11 @@ import * as bp from '.botpress'
 import { Client } from '@botpress/client'
 import { getBigCommerceClient } from './client'
 
-// Helper function to get the vanilla client
+/*
+FOR FUTURE PURPOSES:
+This is the client that MUST be imported in order to allow table operations
+within an integration. Without this, the table operations will cause errors everywhere.
+*/
 const getVanillaClient = (client: any): Client => 
   (client as any)._client as Client
 
@@ -12,10 +16,9 @@ export default new bp.Integration({
     logger.forBot().info('Registering BigCommerce integration')
     
     try {
-      // Get vanilla client for table operations
+      // Getting the vanilla client
       const vanillaClient = getVanillaClient(client)
       
-      // Create products table schema
       const productsTableSchema = {
         type: 'object',
         properties: {
@@ -43,18 +46,14 @@ export default new bp.Integration({
         required: ['product_id', 'name'],
       }
       
-      // Initialize the products table
       await vanillaClient.getOrCreateTable({
         table: 'bigcommerce_products_Table',
         schema: productsTableSchema,
       })
       
-      // After creating the table, sync products automatically using the syncProducts action
-      // instead of implementing custom sync logic here
       logger.forBot().info('Syncing BigCommerce products...')
       
       try {
-        // Use the syncProducts action directly instead of custom implementation
         const syncResult = await actions.syncProducts({
           ctx,
           client,
@@ -66,7 +65,6 @@ export default new bp.Integration({
         
         // Create webhooks if webhook URL is available
         if (ctx.webhookId) {
-          // Format the complete webhook URL with the proper prefix
           const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`;
           logger.forBot().info(`Setting up BigCommerce webhooks to: ${webhookUrl}`)
           try {
@@ -94,18 +92,14 @@ export default new bp.Integration({
     if (req.method === 'POST') {
       logger.forBot().info('Received webhook from BigCommerce')
       
-      // Common function to run product sync with better error handling
       const runProductSync = async () => {
         try {
           logger.forBot().info('Starting product sync...');
           
-          // Get BigCommerce client directly
           const bigCommerceClient = getBigCommerceClient(ctx.configuration);
           
-          // Initialize vanillaClient for direct table access
           const vanillaClient = getVanillaClient(client);
           
-          // First, try to use the actions.syncProducts function
           if (typeof actions.syncProducts === 'function') {
             logger.forBot().info('Using actions.syncProducts function');
             return await actions.syncProducts({
@@ -118,7 +112,6 @@ export default new bp.Integration({
             // Fallback: Implement sync directly (simplified version)
             logger.forBot().warn('actions.syncProducts not found, using direct implementation');
             
-            // Fetch products directly
             const response = await bigCommerceClient.getProducts();
             const products = response.data;
             
@@ -131,11 +124,9 @@ export default new bp.Integration({
               };
             }
             
-            // Get table schema (simplified)
             const tableRows = products.map((product: any) => ({
               product_id: product.id,
               name: product.name,
-              // Add other fields as needed
             }));
             
             // Clear existing products
@@ -178,10 +169,8 @@ export default new bp.Integration({
       };
       
       try {
-        // Log the full request headers and body for debugging
         logger.forBot().info('Webhook headers:', JSON.stringify(req.headers))
         
-        // Check if this is a BigCommerce webhook by looking for characteristic headers
         const isBigCommerceWebhook = Object.keys(req.headers).some(key => 
           key.toLowerCase().includes('bigcommerce') || 
           key.toLowerCase().includes('bc-webhook')
@@ -189,8 +178,7 @@ export default new bp.Integration({
         
         logger.forBot().info(`Is BigCommerce webhook based on headers: ${isBigCommerceWebhook}`);
         
-        // Webhook detected, proceed with sync regardless of event type
-        // This ensures any BigCommerce webhook will trigger a sync
+        // Webhook detected, proceed with sync regardless of event type (whether a product was created, updated, or deleted)
         const result = await runProductSync();
         
         logger.forBot().info('Product sync completed with result:', JSON.stringify(result));

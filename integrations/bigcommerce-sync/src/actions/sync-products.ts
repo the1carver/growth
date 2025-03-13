@@ -9,21 +9,26 @@ const syncProducts = async ({
   logger, 
   input 
 }: any) => {
-  // Get vanilla client for table operations
+  /* 
+  FOR FUTURE PURPOSES:
+  This is the client that MUST be imported in order to allow table operations
+  within an integration. Without this, the table operations will cause errors everywhere.
+  */
   const vanillaClient = (client as any)._client as Client
 
-  // Get BigCommerce client
+  // Getting the BigCommerce client
   const bigCommerceClient = getBigCommerceClient(ctx.configuration)
   
   try {
-    // Define the table name - ensure it follows all validation rules:
-    // - Cannot start with a number
-    // - Must be 30 characters or less
-    // - Can only contain letters, numbers, and underscores
-    // - Must end with 'Table'
+    /*
+    FOR FUTURE PURPOSES (SO YOU DON'T STRUGGLE LIKE I DID):
+    The table name MUST NOT START WITH A NUMBER.
+    Also, it must end with 'Table'.
+    (you should have better logging than I did when building this to catch this early)
+    */
     const tableName = 'bigcommerce_products_Table'
     
-    // Define schema for the products table (max 20 columns)
+    // Note: max 20 columns per botpress table.
     const tableSchema = {
       type: 'object',
       properties: {
@@ -51,13 +56,13 @@ const syncProducts = async ({
       required: ['product_id', 'name'],
     }
     
-    // Create or get the table
+    // As you can see, we can use the getOrCreateTable operation from botpress after using vanillaClient.
     await vanillaClient.getOrCreateTable({
       table: tableName,
       schema: tableSchema,
     })
     
-    // Fetch products from BigCommerce
+    // Fetching products from BigCommerce
     logger.forBot().info('Fetching products from BigCommerce...')
     const response = await bigCommerceClient.getProducts()
     const products = response.data
@@ -74,10 +79,8 @@ const syncProducts = async ({
     // Transform products for table insertion
     // Only include fields that match our schema (max 20 columns)
     const tableRows = products.map((product: any) => {
-      // Extract categories as a comma-separated string
       const categories = product.categories?.join(',') || ''
       
-      // Get primary image URL if available
       const imageUrl = product.images && product.images.length > 0 
         ? product.images[0].url_standard 
         : ''
@@ -106,7 +109,7 @@ const syncProducts = async ({
       }
     })
     
-    // Delete existing rows to ensure fresh data
+    // My syncing is a deletion-insertion sync. Might not be most optimal.
     try {
       logger.forBot().info('Clearing existing products...')
       const { rows } = await vanillaClient.findTableRows({
@@ -123,10 +126,9 @@ const syncProducts = async ({
     } catch (error) {
       // Table might be empty or not exist yet
       logger.forBot().warn('Error clearing existing products', error)
-      // Continue with the sync process anyway
+      // Continue with the sync process anyways
     }
     
-    // Insert new rows
     logger.forBot().info(`Inserting ${tableRows.length} products...`)
     await vanillaClient.createTableRows({
       table: tableName,
