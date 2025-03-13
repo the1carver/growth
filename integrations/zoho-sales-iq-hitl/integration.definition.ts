@@ -5,7 +5,7 @@ import { events, configuration, channels, states, user } from './src/definitions
 export default new IntegrationDefinition({
   name: 'plus/zohosalesiq',
   title: 'Zoho Sales IQ HITL',
-  version: '1.0.3',
+  version: '2.0.0',
   icon: 'icon.svg',
   description: 'This integration allows your bot to use Zoho Sales IQ as a HITL Provider',
   readme: 'hub.md',
