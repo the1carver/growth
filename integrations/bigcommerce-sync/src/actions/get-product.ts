@@ -15,7 +15,7 @@ const getProduct = async ({
     }
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : 'Error getting product with id: ' + productId,
     }
   }
 }
