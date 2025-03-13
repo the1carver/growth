@@ -16,7 +16,6 @@ export default new bp.Integration({
     logger.forBot().info('Registering BigCommerce integration')
     
     try {
-      // Getting the vanilla client
       const vanillaClient = getVanillaClient(client)
       
       const productsTableSchema = {
@@ -63,7 +62,6 @@ export default new bp.Integration({
         
         logger.forBot().info(`Product sync completed: ${syncResult.message}`);
         
-        // Create webhooks if webhook URL is available
         if (ctx.webhookId) {
           const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`;
           logger.forBot().info(`Setting up BigCommerce webhooks to: ${webhookUrl}`)
@@ -88,15 +86,12 @@ export default new bp.Integration({
   actions,
   channels: {},
   handler: async ({ req, client, ctx, logger }) => {
-    // Handle incoming webhook requests
     if (req.method === 'POST') {
       logger.forBot().info('Received webhook from BigCommerce')
       
       try {
         logger.forBot().info('Webhook headers:', JSON.stringify(req.headers))
         
-        // Update webhook detection logic to be more robust
-        // BigCommerce webhooks typically have webhook-id, webhook-signature, and webhook-timestamp headers
         const isBigCommerceWebhook = 
           (req.headers['webhook-id'] && req.headers['webhook-signature'] && req.headers['webhook-timestamp']) ||
           Object.keys(req.headers).some(key => 
@@ -107,7 +102,6 @@ export default new bp.Integration({
         logger.forBot().info(`Is BigCommerce webhook based on headers: ${isBigCommerceWebhook}`);
         
         if (isBigCommerceWebhook) {
-          // Parse the request body to get webhook data
           const webhookData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
           logger.forBot().info('Webhook data:', JSON.stringify(webhookData));
           
@@ -115,7 +109,6 @@ export default new bp.Integration({
           const tableName = 'bigcommerce_products_Table';
           const bigCommerceClient = getBigCommerceClient(ctx.configuration);
           
-          // Enhanced payload parsing with better logging
           logger.forBot().info('Webhook data structure:', JSON.stringify({
             hasData: !!webhookData?.data,
             dataType: webhookData?.data ? typeof webhookData.data : 'undefined',
@@ -124,18 +117,15 @@ export default new bp.Integration({
             scope: webhookData?.scope
           }));
           
-          // Extract the event type and product ID from the webhook data
-          // First check if scope is directly in the webhook data
           let scope = webhookData?.scope;
           
           // If no scope in main object, check if it's in the headers
-          // BigCommerce sometimes puts the event type in the X-Webhook-Event header
+          // Why does BigCommerce send the event type in the X-Webhook-Event header? (idk i guess we'll never know)
           if (!scope && req.headers['x-webhook-event']) {
             scope = req.headers['x-webhook-event'];
           }
           
           // Attempt to extract product ID using different possible paths
-          // BigCommerce has different payload formats depending on the event
           let productId;
           if (webhookData?.data?.id) {
             productId = webhookData.data.id;
@@ -266,17 +256,16 @@ export default new bp.Integration({
               }
             }
           } else {
-            // If we can't extract the product ID or event type, fall back to full sync
+            // If we can't extract the product ID or event type, fall back to full sync (literal deletion-insertion sync)
             logger.forBot().warn('Could not extract product ID or event type from webhook, falling back to full sync');
             
-            // Log detailed webhook structure for debugging purposes
             logger.forBot().info('Detailed webhook structure for debugging:', {
               bodyType: typeof req.body,
               bodyKeys: typeof req.body === 'object' ? Object.keys(req.body) : [],
               headerKeys: Object.keys(req.headers),
               hasProductId: !!productId,
               hasScope: !!scope,
-              payloadSample: JSON.stringify(webhookData).substring(0, 500) // Truncate long payloads
+              payloadSample: JSON.stringify(webhookData).substring(0, 500)
             });
             
             const result = await actions.syncProducts({
@@ -296,7 +285,7 @@ export default new bp.Integration({
             };
           }
         } else {
-          // Not a BigCommerce webhook or we couldn't determine, fall back to full sync
+          // Inderterminate webhook, fall back to full sync
           logger.forBot().warn('Not a recognized BigCommerce webhook, falling back to full sync');
           const result = await actions.syncProducts({
             ctx,
