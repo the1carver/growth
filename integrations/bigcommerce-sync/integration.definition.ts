@@ -4,10 +4,12 @@ import { configuration, states, actions } from './src/definitions/index'
 
 export default new IntegrationDefinition({
   name: integrationName,
-  version: '0.3.1',
+  version: '0.3.2',
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration,
-  actions,
+  // I set this to empty because I don't want to show the actions in the UI.
+  // All actions are backend purposes for syncing products.
+  actions: {},
   states,
 })
