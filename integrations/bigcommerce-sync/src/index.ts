@@ -49,58 +49,20 @@ export default new bp.Integration({
         schema: productsTableSchema,
       })
       
-      // After creating the table, sync products automatically
+      // After creating the table, sync products automatically using the syncProducts action
+      // instead of implementing custom sync logic here
       logger.forBot().info('Syncing BigCommerce products...')
       
       try {
-        // Get BigCommerce client
-        const bigCommerceClient = getBigCommerceClient(ctx.configuration)
+        // Use the syncProducts action directly instead of custom implementation
+        const syncResult = await actions.syncProducts({
+          ctx,
+          client,
+          logger,
+          input: {},
+        });
         
-        // Fetch products from BigCommerce
-        const response = await bigCommerceClient.getProducts()
-        const products = response.data
-        
-        // Transform products for table insertion
-        const tableRows = products.map((product: any) => {
-          // Extract categories as a comma-separated string
-          const categories = product.categories?.join(',') || ''
-          
-          // Get primary image URL if available
-          const imageUrl = product.images && product.images.length > 0 
-            ? product.images[0].url_standard 
-            : ''
-            
-          return {
-            product_id: product.id,
-            name: product.name,
-            sku: product.sku,
-            price: product.price,
-            sale_price: product.sale_price,
-            retail_price: product.retail_price,
-            cost_price: product.cost_price,
-            weight: product.weight,
-            type: product.type,
-            inventory_level: product.inventory_level,
-            inventory_tracking: product.inventory_tracking,
-            brand_id: product.brand_id,
-            categories: categories,
-            availability: product.availability,
-            condition: product.condition,
-            is_visible: product.is_visible,
-            sort_order: product.sort_order,
-            description: product.description?.substring(0, 1000) || '',
-            image_url: imageUrl,
-            url: product.custom_url?.url || '',
-          }
-        })
-        
-        // Insert rows into the table
-        await vanillaClient.createTableRows({
-          table: 'bigcommerce_products_Table',
-          rows: tableRows,
-        })
-        
-        logger.forBot().info(`Successfully synced ${products.length} products from BigCommerce`)
+        logger.forBot().info(`Product sync completed: ${syncResult.message}`);
         
         // Create webhooks if webhook URL is available
         if (ctx.webhookId) {
@@ -108,6 +70,7 @@ export default new bp.Integration({
           const webhookUrl = `https://webhook.botpress.cloud/${ctx.webhookId}`;
           logger.forBot().info(`Setting up BigCommerce webhooks to: ${webhookUrl}`)
           try {
+            const bigCommerceClient = getBigCommerceClient(ctx.configuration)
             const webhookResults = await bigCommerceClient.createProductWebhooks(webhookUrl)
             logger.forBot().info('Webhook creation results:', webhookResults)
           } catch (webhookError) {
