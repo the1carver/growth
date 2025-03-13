@@ -37,3 +37,7 @@ Connect your BigCommerce store to Botpress to sync products from BigCommerce to 
 2. You should see a new table in your Tables section labeled **bigcommerce_products_Table**.
 Note: This table is automatically created when the integration is saved.
 Note #2: The table will automatically update when you make changes to your BigCommerce store (product creation, updates, deletion).
+
+### Actions
+You can manually trigger the syncProducts action to sync products from BigCommerce to your Botpress table.
+For example, you can connect this to a cron job to sync products every X amount of time.

@@ -9,8 +9,9 @@ export default new IntegrationDefinition({
   readme: 'hub.md',
   icon: 'icon.svg',
   configuration,
-  // I set this to empty because I don't want to show the actions in the UI.
-  // All actions are backend purposes for syncing products.
-  actions: {},
+  // Only exposing the syncProducts action in the UI for manual triggers
+  actions: {
+    syncProducts: actions.syncProducts
+  },
   states,
 })
