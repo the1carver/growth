@@ -87,21 +87,19 @@ const syncProducts = async ({
     
     // My syncing is a deletion-insertion sync. Might not be most optimal.
     try {
-      logger.forBot().info('Clearing existing products...')
-      const { rows } = await botpressVanillaClient.findTableRows({
-        table: tableName,
-        limit: 1000, // max limit
+      logger.forBot().info('Dropping existing products table...')
+
+      await botpressVanillaClient.deleteTable({
+        table: tableName
       })
       
-      if (rows.length > 0) {
-        await botpressVanillaClient.deleteTableRows({
-          table: tableName,
-          ids: rows.map(row => row.id),
-        })
-      }
+      await botpressVanillaClient.getOrCreateTable({
+        table: tableName,
+        schema: tableSchema,
+      })
     } catch (error) {
-      // Table might be empty or not exist yet
-      logger.forBot().warn('Error clearing existing products', error)
+      // Table might not exist yet
+      logger.forBot().warn('Error dropping products table', error)
       // Continue with the sync process anyways
     }
     
