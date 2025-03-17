@@ -12,6 +12,139 @@ within an integration. Without this, the table operations will cause errors ever
 const getBotpressVanillaClient = (client: any): Client => 
   (client as any)._client as Client
 
+/* 
+  Helper function to check if a request is from BigCommerce based on headers
+*/
+const isBigCommerceWebhook = (headers: Record<string, string | string[] | undefined>): boolean => {
+  return !!(
+    (headers['webhook-id'] && headers['webhook-signature'] && headers['webhook-timestamp']) ||
+    Object.keys(headers).some(key => 
+      key.toLowerCase().includes('bigcommerce') || 
+      key.toLowerCase().includes('bc-webhook')
+    )
+  );
+}
+
+/* 
+  Helper function to extract product ID from webhook data
+*/
+const extractProductId = (webhookData: any): string | undefined => {
+  if (webhookData?.data?.id) return webhookData.data.id;
+  if (webhookData?.data?.entity_id) return webhookData.data.entity_id;
+  if (webhookData?.id) return webhookData.id;
+  return undefined;
+}
+
+/* 
+  Helper function to handle product create/update operations
+*/
+const handleProductCreateOrUpdate = async (
+  productId: string,
+  bigCommerceClient: any,
+  botpressVanillaClient: Client,
+  tableName: string,
+  isCreated: boolean,
+  logger: any
+) => {
+  logger.forBot().info(`Fetching product details for ID: ${productId}`);
+  
+  const productResponse = await bigCommerceClient.getProduct(productId.toString());
+  const product = productResponse.data;
+  
+  if (!product) return null;
+  
+  const categories = product.categories?.join(',') || '';
+  const imageUrl = product.images && product.images.length > 0 
+    ? product.images[0].url_standard 
+    : '';
+    
+  const productRow = {
+    product_id: product.id,
+    name: product.name,
+    sku: product.sku,
+    price: product.price,
+    sale_price: product.sale_price,
+    retail_price: product.retail_price,
+    cost_price: product.cost_price,
+    weight: product.weight,
+    type: product.type,
+    inventory_level: product.inventory_level,
+    inventory_tracking: product.inventory_tracking,
+    brand_id: product.brand_id,
+    categories: categories,
+    availability: product.availability,
+    condition: product.condition,
+    is_visible: product.is_visible,
+    sort_order: product.sort_order,
+    description: product.description?.substring(0, 1000) || '',
+    image_url: imageUrl,
+    url: product.custom_url?.url || '',
+  };
+  
+  // checking if the product already exists in our table
+  const { rows } = await botpressVanillaClient.findTableRows({
+    table: tableName,
+    filter: { product_id: product.id },
+  });
+  
+  if (rows.length > 0 && rows[0]?.id) {
+    // this updates the existing product
+    logger.forBot().info(`Updating existing product ID: ${productId}`);
+    await botpressVanillaClient.updateTableRows({
+      table: tableName,
+      rows: [{ id: rows[0].id, ...productRow }],
+    });
+  } else {
+    // else insert the new product
+    logger.forBot().info(`Creating new product ID: ${productId}`);
+    await botpressVanillaClient.createTableRows({
+      table: tableName,
+      rows: [productRow],
+    });
+  }
+  
+  return {
+    success: true,
+    message: `Product ${productId} ${isCreated ? 'created' : 'updated'} successfully`,
+  };
+}
+
+/* 
+  Helper function to handle product delete operations
+*/
+const handleProductDelete = async (
+  productId: string,
+  botpressVanillaClient: Client,
+  tableName: string,
+  logger: any
+) => {
+  logger.forBot().info(`Deleting product ID: ${productId}`);
+  
+  const { rows } = await botpressVanillaClient.findTableRows({
+    table: tableName,
+    filter: { product_id: productId },
+  });
+  
+  if (rows.length > 0 && rows[0]?.id) {
+    // deleting the row pertaining to the product
+    await botpressVanillaClient.deleteTableRows({
+      table: tableName,
+      ids: [rows[0].id],
+    });
+    
+    return {
+      success: true,
+      message: `Product ${productId} deleted successfully`,
+    };
+  } else {
+    logger.forBot().warn(`Product ID ${productId} not found for deletion`);
+    return {
+      success: true,
+      message: `Product ${productId} not found for deletion`,
+    };
+  }
+}
+
 export default new bp.Integration({
   register: async ({ client, ctx, logger }) => {
     logger.forBot().info('Registering BigCommerce integration')
@@ -60,241 +193,161 @@ export default new bp.Integration({
   actions,
   channels: {},
   handler: async ({ req, client, ctx, logger }) => {
-    if (req.method === 'POST') {
-      logger.forBot().info('Received webhook from BigCommerce')
+    // guard clause for non-POST requests
+    if (req.method !== 'POST') {
+      return {
+        status: 405,
+        body: JSON.stringify({
+          success: false, 
+          message: 'Method not allowed'
+        })
+      };
+    }
+    
+    logger.forBot().info('Received webhook from BigCommerce');
+    
+    try {
+      logger.forBot().info('Webhook headers:', JSON.stringify(req.headers));
+      
+      // checking if this is a BigCommerce webhook
+      const isBCWebhook = isBigCommerceWebhook(req.headers);
+      logger.forBot().info(`Is BigCommerce webhook based on headers: ${isBCWebhook}`);
+      
+      // guard clause: if not a BigCommerce webhook, do full sync
+      if (!isBCWebhook) {
+        logger.forBot().warn('Not a recognized BigCommerce webhook, falling back to full sync');
+        const result = await actions.syncProducts({
+          ctx,
+          client,
+          logger,
+          input: {},
+        });
+        
+        return {
+          status: 200,
+          body: JSON.stringify({
+            success: result.success,
+            message: 'BigCommerce webhook processed (full sync)',
+            syncResult: result
+          })
+        };
+      }
+      
+      // parsing webhook data
+      const webhookData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      logger.forBot().info('Webhook data:', JSON.stringify(webhookData));
+      
+      const botpressVanillaClient = getBotpressVanillaClient(client);
+      const tableName = productsTableName;
+      const bigCommerceClient = getBigCommerceClient(ctx.configuration);
+      
+      logger.forBot().info('Webhook data structure:', JSON.stringify({
+        hasData: !!webhookData?.data,
+        dataType: webhookData?.data ? typeof webhookData.data : 'undefined',
+        dataKeys: webhookData?.data ? Object.keys(webhookData.data) : [],
+        hasScope: !!webhookData?.scope,
+        scope: webhookData?.scope
+      }));
+      
+      // extracting scope/event type
+      let scope = webhookData?.scope;
+      if (!scope && req.headers['x-webhook-event']) {
+        scope = req.headers['x-webhook-event'];
+      }
+      
+      // extracting product ID
+      const productId = extractProductId(webhookData);
+      
+      // guard clause: if missing scope or productId, fall back to full sync
+      if (!scope || !productId) {
+        logger.forBot().warn('Could not extract product ID or event type from webhook, falling back to full sync');
+        
+        logger.forBot().info('Detailed webhook structure for debugging:', {
+          bodyType: typeof req.body,
+          bodyKeys: typeof req.body === 'object' ? Object.keys(req.body) : [],
+          headerKeys: Object.keys(req.headers),
+          hasProductId: !!productId,
+          hasScope: !!scope,
+          payloadSample: JSON.stringify(webhookData).substring(0, 500)
+        });
+        
+        const result = await actions.syncProducts({
+          ctx,
+          client,
+          logger,
+          input: {},
+        });
+        
+        return {
+          status: 200,
+          body: JSON.stringify({
+            success: result.success,
+            message: 'Full sync performed (fallback)',
+            syncResult: result
+          })
+        };
+      }
+      
+      logger.forBot().info(`Processing event: ${scope} for product ID: ${productId}`);
+      
+      // format variations --> i did this bc I was getting errors within the scope and couldn't be bothered
+      const normalizedScope = scope.toLowerCase();
+      const isCreated = normalizedScope.includes('created') || normalizedScope.includes('create');
+      const isUpdated = normalizedScope.includes('updated') || normalizedScope.includes('update');
+      const isDeleted = normalizedScope.includes('deleted') || normalizedScope.includes('delete');
+      
+      let result;
       
       try {
-        logger.forBot().info('Webhook headers:', JSON.stringify(req.headers))
-        
-        const isBigCommerceWebhook = 
-          (req.headers['webhook-id'] && req.headers['webhook-signature'] && req.headers['webhook-timestamp']) ||
-          Object.keys(req.headers).some(key => 
-            key.toLowerCase().includes('bigcommerce') || 
-            key.toLowerCase().includes('bc-webhook')
+        if (isCreated || isUpdated) {
+          result = await handleProductCreateOrUpdate(
+            productId.toString(),
+            bigCommerceClient,
+            botpressVanillaClient,
+            tableName,
+            isCreated,
+            logger
           );
-        
-        logger.forBot().info(`Is BigCommerce webhook based on headers: ${isBigCommerceWebhook}`);
-        
-        if (isBigCommerceWebhook) {
-          const webhookData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-          logger.forBot().info('Webhook data:', JSON.stringify(webhookData));
-          
-          const botpressVanillaClient = getBotpressVanillaClient(client);
-          const tableName = productsTableName;
-          const bigCommerceClient = getBigCommerceClient(ctx.configuration);
-          
-          logger.forBot().info('Webhook data structure:', JSON.stringify({
-            hasData: !!webhookData?.data,
-            dataType: webhookData?.data ? typeof webhookData.data : 'undefined',
-            dataKeys: webhookData?.data ? Object.keys(webhookData.data) : [],
-            hasScope: !!webhookData?.scope,
-            scope: webhookData?.scope
-          }));
-          
-          let scope = webhookData?.scope;
-          
-          // If no scope in main object, check if it's in the headers
-          // Why does BigCommerce send the event type in the X-Webhook-Event header? (idk i guess we'll never know)
-          if (!scope && req.headers['x-webhook-event']) {
-            scope = req.headers['x-webhook-event'];
-          }
-          
-          // Attempt to extract product ID using different possible paths
-          let productId;
-          if (webhookData?.data?.id) {
-            productId = webhookData.data.id;
-          } else if (webhookData?.data?.entity_id) {
-            productId = webhookData.data.entity_id;
-          } else if (webhookData?.id) {
-            productId = webhookData.id;
-          }
-          
-          logger.forBot().info(`Processing event: ${scope} for product ID: ${productId}`);
-          
-          if (scope && productId) {
-            // Normalize scope string to handle potential format variations
-            const normalizedScope = scope.toLowerCase();
-            const isCreated = normalizedScope.includes('created') || normalizedScope.includes('create');
-            const isUpdated = normalizedScope.includes('updated') || normalizedScope.includes('update');
-            const isDeleted = normalizedScope.includes('deleted') || normalizedScope.includes('delete');
-            
-            if (isCreated || isUpdated) {
-              // For product creation or update, fetch only the specific product
-              logger.forBot().info(`Fetching product details for ID: ${productId}`);
-              
-              try {
-                const productResponse = await bigCommerceClient.getProduct(productId.toString());
-                const product = productResponse.data;
-                
-                if (product) {
-                  const categories = product.categories?.join(',') || '';
-                  const imageUrl = product.images && product.images.length > 0 
-                    ? product.images[0].url_standard 
-                    : '';
-                    
-                  const productRow = {
-                    product_id: product.id,
-                    name: product.name,
-                    sku: product.sku,
-                    price: product.price,
-                    sale_price: product.sale_price,
-                    retail_price: product.retail_price,
-                    cost_price: product.cost_price,
-                    weight: product.weight,
-                    type: product.type,
-                    inventory_level: product.inventory_level,
-                    inventory_tracking: product.inventory_tracking,
-                    brand_id: product.brand_id,
-                    categories: categories,
-                    availability: product.availability,
-                    condition: product.condition,
-                    is_visible: product.is_visible,
-                    sort_order: product.sort_order,
-                    description: product.description?.substring(0, 1000) || '',
-                    image_url: imageUrl,
-                    url: product.custom_url?.url || '',
-                  };
-                  
-                  // Check if the product already exists in our table
-                  const { rows } = await botpressVanillaClient.findTableRows({
-                    table: tableName,
-                    filter: { product_id: product.id },
-                  });
-                  
-                  if (rows.length > 0 && rows[0]?.id) {
-                    // Update existing product
-                    logger.forBot().info(`Updating existing product ID: ${productId}`);
-                    await botpressVanillaClient.updateTableRows({
-                      table: tableName,
-                      rows: [{ id: rows[0].id, ...productRow }],
-                    });
-                  } else {
-                    // Insert new product
-                    logger.forBot().info(`Creating new product ID: ${productId}`);
-                    await botpressVanillaClient.createTableRows({
-                      table: tableName,
-                      rows: [productRow],
-                    });
-                  }
-                  
-                  return {
-                    status: 200,
-                    body: JSON.stringify({
-                      success: true,
-                      message: `Product ${productId} ${isCreated ? 'created' : 'updated'} successfully`,
-                    })
-                  };
-                }
-              } catch (error) {
-                logger.forBot().error(`Error processing ${scope} for product ${productId}:`, error);
-                throw error;
-              }
-            } else if (isDeleted) {
-              // For product deletion, remove just the specific product
-              logger.forBot().info(`Deleting product ID: ${productId}`);
-              
-              try {
-                // Find the product in our table
-                const { rows } = await botpressVanillaClient.findTableRows({
-                  table: tableName,
-                  filter: { product_id: productId },
-                });
-                
-                if (rows.length > 0 && rows[0]?.id) {
-                  // Delete the product
-                  await botpressVanillaClient.deleteTableRows({
-                    table: tableName,
-                    ids: [rows[0].id],
-                  });
-                  
-                  return {
-                    status: 200,
-                    body: JSON.stringify({
-                      success: true,
-                      message: `Product ${productId} deleted successfully`,
-                    })
-                  };
-                } else {
-                  logger.forBot().warn(`Product ID ${productId} not found for deletion`);
-                  return {
-                    status: 200,
-                    body: JSON.stringify({
-                      success: true,
-                      message: `Product ${productId} not found for deletion`,
-                    })
-                  };
-                }
-              } catch (error) {
-                logger.forBot().error(`Error deleting product ${productId}:`, error);
-                throw error;
-              }
-            }
-          } else {
-            // If we can't extract the product ID or event type, fall back to full sync (literal deletion-insertion sync)
-            logger.forBot().warn('Could not extract product ID or event type from webhook, falling back to full sync');
-            
-            logger.forBot().info('Detailed webhook structure for debugging:', {
-              bodyType: typeof req.body,
-              bodyKeys: typeof req.body === 'object' ? Object.keys(req.body) : [],
-              headerKeys: Object.keys(req.headers),
-              hasProductId: !!productId,
-              hasScope: !!scope,
-              payloadSample: JSON.stringify(webhookData).substring(0, 500)
-            });
-            
-            const result = await actions.syncProducts({
-              ctx,
-              client,
-              logger,
-              input: {},
-            });
-            
-            return {
-              status: 200,
-              body: JSON.stringify({
-                success: result.success,
-                message: 'Full sync performed (fallback)',
-                syncResult: result
-              })
-            };
-          }
+        } else if (isDeleted) {
+          result = await handleProductDelete(
+            productId.toString(),
+            botpressVanillaClient,
+            tableName,
+            logger
+          );
         } else {
-          // Inderterminate webhook, fall back to full sync
-          logger.forBot().warn('Not a recognized BigCommerce webhook, falling back to full sync');
-          const result = await actions.syncProducts({
+          // Unrecognized event type = fall back to full sync
+          logger.forBot().warn(`Unrecognized event type: ${scope}, falling back to full sync`);
+          result = await actions.syncProducts({
             ctx,
             client,
             logger,
             input: {},
           });
-          
-          return {
-            status: 200,
-            body: JSON.stringify({
-              success: result.success,
-              message: 'BigCommerce webhook processed (full sync)',
-              syncResult: result
-            })
-          };
+          result.message = 'Full sync performed (unrecognized event type)';
         }
-      } catch (error) {
-        logger.forBot().error('Error processing webhook:', error)
+        
         return {
-          status: 500,
+          status: 200,
           body: JSON.stringify({
-            success: false, 
-            message: `Error processing webhook: ${error instanceof Error ? error.message : String(error)}`
+            success: result?.success || false,
+            message: result?.message || 'Webhook processed',
+            ...result
           })
-        }
+        };
+      } catch (error) {
+        logger.forBot().error(`Error processing ${scope} for product ${productId}:`, error);
+        throw error;
       }
-    }
-    
-    return {
-      status: 405,
-      body: JSON.stringify({
-        success: false, 
-        message: 'Method not allowed'
-      })
+    } catch (error) {
+      logger.forBot().error('Error processing webhook:', error)
+      return {
+        status: 500,
+        body: JSON.stringify({
+          success: false, 
+          message: `Error processing webhook: ${error instanceof Error ? error.message : String(error)}`
+        })
+      }
     }
   },
 }) 
