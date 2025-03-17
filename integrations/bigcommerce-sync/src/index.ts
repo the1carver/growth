@@ -9,7 +9,7 @@ FOR FUTURE PURPOSES:
 This is the client that MUST be imported in order to allow table operations
 within an integration. Without this, the table operations will cause errors everywhere.
 */
-const getVanillaClient = (client: any): Client => 
+const getBotpressVanillaClient = (client: any): Client => 
   (client as any)._client as Client
 
 export default new bp.Integration({
@@ -17,9 +17,9 @@ export default new bp.Integration({
     logger.forBot().info('Registering BigCommerce integration')
     
     try {
-      const vanillaClient = getVanillaClient(client)
+      const botpressVanillaClient = getBotpressVanillaClient(client)
       
-      await vanillaClient.getOrCreateTable({
+      await botpressVanillaClient.getOrCreateTable({
         table: productsTableName,
         schema: productsTableSchema,
       })
@@ -79,7 +79,7 @@ export default new bp.Integration({
           const webhookData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
           logger.forBot().info('Webhook data:', JSON.stringify(webhookData));
           
-          const vanillaClient = getVanillaClient(client);
+          const botpressVanillaClient = getBotpressVanillaClient(client);
           const tableName = productsTableName;
           const bigCommerceClient = getBigCommerceClient(ctx.configuration);
           
@@ -156,7 +156,7 @@ export default new bp.Integration({
                   };
                   
                   // Check if the product already exists in our table
-                  const { rows } = await vanillaClient.findTableRows({
+                  const { rows } = await botpressVanillaClient.findTableRows({
                     table: tableName,
                     filter: { product_id: product.id },
                   });
@@ -164,14 +164,14 @@ export default new bp.Integration({
                   if (rows.length > 0 && rows[0]?.id) {
                     // Update existing product
                     logger.forBot().info(`Updating existing product ID: ${productId}`);
-                    await vanillaClient.updateTableRows({
+                    await botpressVanillaClient.updateTableRows({
                       table: tableName,
                       rows: [{ id: rows[0].id, ...productRow }],
                     });
                   } else {
                     // Insert new product
                     logger.forBot().info(`Creating new product ID: ${productId}`);
-                    await vanillaClient.createTableRows({
+                    await botpressVanillaClient.createTableRows({
                       table: tableName,
                       rows: [productRow],
                     });
@@ -195,14 +195,14 @@ export default new bp.Integration({
               
               try {
                 // Find the product in our table
-                const { rows } = await vanillaClient.findTableRows({
+                const { rows } = await botpressVanillaClient.findTableRows({
                   table: tableName,
                   filter: { product_id: productId },
                 });
                 
                 if (rows.length > 0 && rows[0]?.id) {
                   // Delete the product
-                  await vanillaClient.deleteTableRows({
+                  await botpressVanillaClient.deleteTableRows({
                     table: tableName,
                     ids: [rows[0].id],
                   });

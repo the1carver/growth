@@ -15,7 +15,7 @@ const syncProducts = async ({
   This is the client that MUST be imported in order to allow table operations
   within an integration. Without this, the table operations will cause errors everywhere.
   */
-  const vanillaClient = (client as any)._client as Client
+  const botpressVanillaClient = (client as any)._client as Client
 
   // Getting the BigCommerce client
   const bigCommerceClient = getBigCommerceClient(ctx.configuration)
@@ -32,8 +32,8 @@ const syncProducts = async ({
     // Note: max 20 columns per botpress table.
     const tableSchema = productsTableSchema
     
-    // As you can see, we can use the getOrCreateTable operation from botpress after using vanillaClient.
-    await vanillaClient.getOrCreateTable({
+    // As you can see, we can use the getOrCreateTable operation from botpress after using botpressVanillaClient.
+    await botpressVanillaClient.getOrCreateTable({
       table: tableName,
       schema: tableSchema,
     })
@@ -88,13 +88,13 @@ const syncProducts = async ({
     // My syncing is a deletion-insertion sync. Might not be most optimal.
     try {
       logger.forBot().info('Clearing existing products...')
-      const { rows } = await vanillaClient.findTableRows({
+      const { rows } = await botpressVanillaClient.findTableRows({
         table: tableName,
         limit: 1000, // max limit
       })
       
       if (rows.length > 0) {
-        await vanillaClient.deleteTableRows({
+        await botpressVanillaClient.deleteTableRows({
           table: tableName,
           ids: rows.map(row => row.id),
         })
@@ -106,7 +106,7 @@ const syncProducts = async ({
     }
     
     logger.forBot().info(`Inserting ${tableRows.length} products...`)
-    await vanillaClient.createTableRows({
+    await botpressVanillaClient.createTableRows({
       table: tableName,
       rows: tableRows,
     })
