@@ -52,10 +52,26 @@ const syncProducts = async ({
       }
     }
     
+    // Fetch all categories to map IDs to names
+    logger.forBot().info('Fetching categories to map IDs to names...')
+    const categoriesResponse = await bigCommerceClient.getCategories()
+    const categoriesMap = new Map()
+    
+    if (categoriesResponse && categoriesResponse.data) {
+      categoriesResponse.data.forEach((category: any) => {
+        categoriesMap.set(category.id, category.name)
+      })
+    }
+    
     // Transform products for table insertion
     // Only include fields that match our schema (max 20 columns)
     const tableRows = products.map((product: any) => {
-      const categories = product.categories?.join(',') || ''
+      // Map category IDs to names
+      const categoryNames = product.categories?.map((categoryId: number) => 
+        categoriesMap.get(categoryId) || categoryId.toString()
+      ) || []
+      
+      const categories = categoryNames.join(',')
       
       const imageUrl = product.images && product.images.length > 0 
         ? product.images[0].url_standard 

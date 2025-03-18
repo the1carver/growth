@@ -53,7 +53,23 @@ const handleProductCreateOrUpdate = async (
   
   if (!product) return null;
   
-  const categories = product.categories?.join(',') || '';
+  // Fetch all categories to map IDs to names
+  logger.forBot().info(`Fetching categories to map IDs to names`);
+  const categoriesResponse = await bigCommerceClient.getCategories();
+  const categoriesMap = new Map();
+  
+  if (categoriesResponse && categoriesResponse.data) {
+    categoriesResponse.data.forEach((category: any) => {
+      categoriesMap.set(category.id, category.name);
+    });
+  }
+  
+  const categoryNames = product.categories?.map((categoryId: number) => 
+    categoriesMap.get(categoryId) || categoryId.toString()
+  ) || [];
+  
+  const categories = categoryNames.join(',');
+  
   const imageUrl = product.images && product.images.length > 0 
     ? product.images[0].url_standard 
     : '';

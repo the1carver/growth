@@ -34,6 +34,15 @@ export class BigCommerceClient {
     }
   }
 
+  async getCategories() {
+    try {
+      const response = await this.client.get(`${this.baseUrl}/v3/catalog/categories`)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
   async makeRequest(config: AxiosRequestConfig) {
     try {
       const url = config.url?.startsWith('http') 
