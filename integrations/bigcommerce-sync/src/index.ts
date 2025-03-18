@@ -120,9 +120,12 @@ const handleProductDelete = async (
 ) => {
   logger.forBot().info(`Deleting product ID: ${productId}`);
   
+  // Convert the productId to a number since it's stored that way in the schema
+  const productIdNumber = Number(productId);
+  
   const { rows } = await botpressVanillaClient.findTableRows({
     table: tableName,
-    filter: { product_id: productId },
+    filter: { product_id: productIdNumber },
   });
   
   if (rows.length > 0 && rows[0]?.id) {
