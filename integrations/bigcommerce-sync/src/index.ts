@@ -53,7 +53,38 @@ const handleProductCreateOrUpdate = async (
   
   if (!product) return null;
   
-  const categories = product.categories?.join(',') || '';
+  // Fetch all categories to map IDs to names
+  logger.forBot().info(`Fetching categories to map IDs to names`);
+  const categoriesResponse = await bigCommerceClient.getCategories();
+  const categoriesMap = new Map();
+  
+  if (categoriesResponse && categoriesResponse.data) {
+    categoriesResponse.data.forEach((category: any) => {
+      categoriesMap.set(category.id, category.name);
+    });
+  }
+  
+  // Fetch all brands to map IDs to names
+  logger.forBot().info(`Fetching brands to map IDs to names`);
+  const brandsResponse = await bigCommerceClient.getBrands();
+  const brandsMap = new Map();
+  
+  if (brandsResponse && brandsResponse.data) {
+    brandsResponse.data.forEach((brand: any) => {
+      brandsMap.set(brand.id, brand.name);
+    });
+  }
+  
+  // Map category IDs to names
+  const categoryNames = product.categories?.map((categoryId: number) => 
+    categoriesMap.get(categoryId) || categoryId.toString()
+  ) || [];
+  
+  const categories = categoryNames.join(',');
+  
+  // Get brand name from brand ID
+  const brandName = product.brand_id ? brandsMap.get(product.brand_id) || product.brand_id.toString() : '';
+  
   const imageUrl = product.images && product.images.length > 0 
     ? product.images[0].url_standard 
     : '';
@@ -70,7 +101,7 @@ const handleProductCreateOrUpdate = async (
     type: product.type,
     inventory_level: product.inventory_level,
     inventory_tracking: product.inventory_tracking,
-    brand_id: product.brand_id,
+    brand_name: brandName,
     categories: categories,
     availability: product.availability,
     condition: product.condition,
@@ -120,9 +151,12 @@ const handleProductDelete = async (
 ) => {
   logger.forBot().info(`Deleting product ID: ${productId}`);
   
+  // Convert the productId to a number since it's stored that way in the schema
+  const productIdNumber = Number(productId);
+  
   const { rows } = await botpressVanillaClient.findTableRows({
     table: tableName,
-    filter: { product_id: productId },
+    filter: { product_id: productIdNumber },
   });
   
   if (rows.length > 0 && rows[0]?.id) {
