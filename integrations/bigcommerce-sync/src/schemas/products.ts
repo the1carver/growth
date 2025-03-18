@@ -13,7 +13,7 @@ export const productsTableSchema = {
     type: { type: 'string' },
     inventory_level: { type: 'number' },
     inventory_tracking: { type: 'string' },
-    brand_id: { type: 'number' },
+    brand_name: { type: 'string', 'x-zui': { searchable: true } },
     categories: { type: 'string', 'x-zui': { searchable: true } },
     availability: { type: 'string' },
     condition: { type: 'string' },
