@@ -4,6 +4,7 @@
   "description": "Integration for HITL Salesforce Messaging",
   "private": true,
   "scripts": {
+    "add-interface": "pnpm bp add --package-type interface hitl --y",
     "start": "pnpm bp serve",
     "build": "pnpm bp build",
     "deploy": "pnpm bp deploy",
